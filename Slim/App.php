@@ -245,8 +245,8 @@ class App extends \Pimple\Container
                 // $callable is a Pimple index, construct a closure that extracts the class
                 // from Pimple and then runs its __invoke()
                 $callable = function() use ($callable) {
-                    $class = $this[$callable];
-                    return $class();
+                    $obj = $this[$callable];
+                    return call_user_func_array([$obj, '__invoke'], func_get_args());
                 };
             } elseif (preg_match('!^([^\:]+)\:([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)$!', $callable, $matches)) {
                 // it's a class:method string
@@ -264,13 +264,9 @@ class App extends \Pimple\Container
                 // straight classname - we can instantite directly
                 $callable = function() use ($callable) {
                     $obj = new $class;
-                    return $obj();
+                    return call_user_func_array([$obj, '__invoke'], func_get_args());
                 };
-            } else {
-                throw new \RuntimeException("Cannot resolve $callable to a class");
             }
-
-
         }
 
         if ($callable instanceof \Closure) {
