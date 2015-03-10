@@ -239,9 +239,20 @@ class App extends \Pimple\Container
             $callable = $name;
             $name = strtolower(implode('.', $methods)) . $routeCount++;
         }
+        
+        if (is_string($callable) && isset($this[$callable])) {
+            // $callable is a Pimple index, construct a closure that extracts the class
+            // from Pimple and then runs its __invoke()
+            $callable = function() use ($callable) {
+                $class = $this[$callable];
+                return $class();
+            };
+        }
+
         if ($callable instanceof \Closure) {
             $callable = $callable->bindTo($this);
         }
+
         $route = $this['router']->map($name, $methods, $pattern, $callable);
         $route->setMiddleware($args);
 
