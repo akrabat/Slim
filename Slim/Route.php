@@ -182,8 +182,11 @@ class Route implements RouteInterface
 
         // Invoke route callable
         try {
+            // First two arguments to the callable are the request and response
+            array_unshift($args, $request, $response);
+
             ob_start();
-            $newResponse = call_user_func_array($this->callable, [$request, $response, $args]);
+            $newResponse = call_user_func_array($this->callable, $args);
             $output = ob_get_clean();
         } catch (\Exception $e) {
             ob_end_clean();
