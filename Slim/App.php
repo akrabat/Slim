@@ -239,6 +239,40 @@ class App extends \Pimple\Container
             $callable = $name;
             $name = strtolower(implode('.', $methods)) . $routeCount++;
         }
+
+        if (is_string($callable)) {
+            if (isset($this[$callable])) {
+                // $callable is a Pimple index, construct a closure that extracts the class
+                // from Pimple and then runs its __invoke()
+                $callable = function() use ($callable) {
+                    $class = $this[$callable];
+                    return $class();
+                };
+            } elseif (preg_match('!^([^\:]+)\:([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)$!', $callable, $matches)) {
+                // it's a class:method string
+                $class = $matches[1];
+                $method = $matches[2];
+                $callable = function() use ($class, $method) {
+                    if (isset($this[$class])) {
+                        $obj = $this[$class];
+                    } else {
+                        $obj = new $class;
+                    }
+                    return call_user_func_array(array($obj, $method), func_get_args());
+                };
+            } elseif (class_exists($callable)) {
+                // straight classname - we can instantite directly
+                $callable = function() use ($callable) {
+                    $obj = new $class;
+                    return $obj();
+                };
+            } else {
+                throw new \RuntimeException("Cannot resolve $callable to a class");
+            }
+
+
+        }
+
         if ($callable instanceof \Closure) {
             $callable = $callable->bindTo($this);
         }
