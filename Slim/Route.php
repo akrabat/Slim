@@ -98,29 +98,6 @@ class Route implements RouteInterface
      */
     protected function setCallable($callable)
     {
-        $matches = array();
-        if (is_string($callable) && preg_match('!^([^\:]+)\:([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)$!', $callable, $matches)) {
-            $class = $matches[1];
-            $method = $matches[2];
-            $callable = function() use ($class, $method) {
-                static $obj = null;
-                if ($obj === null) {
-                    if (!class_exists($class)) {
-                        throw new \InvalidArgumentException('Route callable class does not exist');
-                    }
-                    $obj = new $class;
-                }
-                if (!method_exists($obj, $method)) {
-                    throw new \InvalidArgumentException('Route callable method does not exist');
-                }
-                return call_user_func_array(array($obj, $method), func_get_args());
-            };
-        }
-
-        if (!is_callable($callable)) {
-            throw new \InvalidArgumentException('Route callable must be callable');
-        }
-
         $this->callable = $callable;
     }
 
@@ -172,6 +149,8 @@ class Route implements RouteInterface
      */
     public function __invoke(RequestInterface $request, ResponseInterface $response, array $args)
     {
+        $callable = $this->resolveCallable();
+
         // Invoke route middleware
         foreach ($this->middleware as $mw) {
             $newResponse = call_user_func_array($mw, [$request, $response, $this]);
@@ -183,7 +162,7 @@ class Route implements RouteInterface
         // Invoke route callable
         try {
             ob_start();
-            $newResponse = call_user_func_array($this->callable, [$request, $response, $args]);
+            $newResponse = call_user_func_array($callable, [$request, $response, $args]);
             $output = ob_get_clean();
         } catch (\Exception $e) {
             ob_end_clean();
@@ -201,5 +180,42 @@ class Route implements RouteInterface
         }
 
         return $response;
+    }
+
+    /**
+     * Resolve the callable
+     *
+     * If it is a string of the format class:method, then instantiate the class
+     * and return the combination of the class instance and method name.
+     *
+     * @return callable
+     */
+    protected function resolveCallable()
+    {
+        $callable = $this->callable;
+
+        $matches = array();
+        if (is_string($callable) && preg_match('!^([^\:]+)\:([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)$!', $callable, $matches)) {
+            $class = $matches[1];
+            $method = $matches[2];
+            
+            if (!class_exists($class)) {
+                throw new \InvalidArgumentException('Route callable class does not exist');
+            }
+    
+            $obj = new $class;
+
+            if (!method_exists($obj, $method)) {
+                throw new \InvalidArgumentException('Route callable method does not exist');
+            }
+
+            $callable = [$obj, $method];
+        }
+
+        if (!is_callable($callable)) {
+            throw new \InvalidArgumentException('Route callable must be callable');
+        }
+
+        return $callable;
     }
 }
