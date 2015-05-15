@@ -80,7 +80,7 @@ class Route implements RouteInterface, ServiceProviderInterface
     {
         $callable = $this->resolveCallable($callable);
         if ($callable instanceof \Closure) {
-            $callable = $callable->bindTo($this->container);
+            $callable = $callable->bindTo($this->getContainer());
         }
 
         return $this->addMiddleware($callable);
@@ -161,6 +161,16 @@ class Route implements RouteInterface, ServiceProviderInterface
     {
         $this->container = $container;
         return $this;
+    }
+
+    /**
+     * Enable access to the DI container when adding route middleware
+     *
+     * @return ContainerInterface
+     */
+    protected function getContainer()
+    {
+        return $this->container;
     }
 
     /********************************************************************************

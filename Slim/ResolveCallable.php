@@ -8,8 +8,6 @@
  */
 namespace Slim;
 
-use Pimple\Container;
-
 /**
  * ResolveCallable
  *
@@ -19,13 +17,6 @@ use Pimple\Container;
  */
 trait ResolveCallable
 {
-    /**
-     * Container
-     *
-     * @var Container
-     */
-    protected $container;
-
     /**
      * Resolve a string of the format 'class:method' into a closure that the
      * router can dispatch.
@@ -37,13 +28,11 @@ trait ResolveCallable
     protected function resolveCallable($callable)
     {
         if (is_string($callable) && strpos($callable, ':')) {
-            if($this instanceof Container) {
-                $container = $this;
-            } elseif($this->container instanceof Container) {
-                $container = $this->container;
+            if (method_exists($this, 'getContainer')) {
+                $container = $this->getContainer();
             } else {
                 throw new \RuntimeException('Cannot resolve callable string');
-            }            
+            }
             return new CallableResolver($callable, $container);
         }
 
