@@ -152,9 +152,7 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $cookies = [];
         $serverParams = [];
         $body = new Body(fopen('php://temp', 'r+'));
-        $body->write('_METHOD=PUT');
-        $body->rewind();
-        $request = new Request('POST', $uri, $headers, $cookies, $serverParams, $body);
+        $request = new Request('POST', $uri, $headers, $cookies, $serverParams, $body, ['_METHOD' =>'PUT']);
 
         $this->assertEquals('PUT', $request->getMethod());
         $this->assertEquals('POST', $request->getOriginalMethod());
