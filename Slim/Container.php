@@ -82,7 +82,7 @@ final class Container extends PimpleContainer implements ContainerInterface
             $serverParams = $env->all();
             $body = new Http\Body(fopen('php://input', 'r'));
 
-            return new Http\Request($method, $uri, $headers, $cookies, $serverParams, $body);
+            return new Http\Request($method, $uri, $headers, $cookies, $serverParams, $body, $_POST);
         });
 
         /**

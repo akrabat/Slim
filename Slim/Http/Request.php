@@ -104,6 +104,13 @@ class Request implements ServerRequestInterface
     protected $body;
 
     /**
+     * The $_POST data for use with getParsedBody()
+     *
+     * @var array
+     */
+    protected $postData;
+
+    /**
      * The request body parsed (if possible) into a PHP array or object
      *
      * @var null|array|object
@@ -144,9 +151,10 @@ class Request implements ServerRequestInterface
      * @param HeadersInterface    $headers      The request headers collection
      * @param array               $cookies      The request cookies collection
      * @param array               $serverParams The server environment variables
-     * @param StreamInterface $body         The request body object
+     * @param StreamInterface     $body         The request body object
+     * @param array               $postData     The $_POST data
      */
-    public function __construct($method, UriInterface $uri, HeadersInterface $headers, array $cookies, array $serverParams, StreamInterface $body)
+    public function __construct($method, UriInterface $uri, HeadersInterface $headers, array $cookies, array $serverParams, StreamInterface $body, array $postData = [])
     {
         $this->originalMethod = $this->filterMethod($method);
         $this->uri = $uri;
@@ -155,6 +163,7 @@ class Request implements ServerRequestInterface
         $this->serverParams = $serverParams;
         $this->attributes = new Collection();
         $this->body = $body;
+        $this->postData = $postData;
 
         if (!$this->headers->has('Host') || $this->uri->getHost() !== '') {
             $this->headers->set('Host', $this->uri->getHost());
@@ -169,6 +178,17 @@ class Request implements ServerRequestInterface
         });
 
         $this->registerMediaTypeParser('application/x-www-form-urlencoded', function ($input) {
+            if ($this->isPost()) {
+                return $this->postData;
+            }
+            parse_str($input, $data);
+            return (object)$data;
+        });
+
+        $this->registerMediaTypeParser('multipart/form-data', function ($input) {
+            if ($this->isPost()) {
+                return $this->postData;
+            }
             parse_str($input, $data);
             return (object)$data;
         });
