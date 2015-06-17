@@ -10,7 +10,7 @@ namespace Slim;
 
 use Interop\Container\ContainerInterface;
 use Pimple\Container as PimpleContainer;
-use Slim\Router;
+use Slim\Router\Router;
 use Slim\Exception\NotFoundException;
 use Slim\Handlers\Error;
 use Slim\Handlers\NotFound;

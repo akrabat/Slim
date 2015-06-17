@@ -31,8 +31,8 @@
         "php": ">=5.4.0",
         "pimple/pimple": "3.*",
         "psr/http-message": "1.0",
-        "nikic/fast-route": "~0.4",
-        "container-interop/container-interop": "~1.1"
+        "container-interop/container-interop": "~1.1",
+        "aura/router": "^2.2"
     },
     "require-dev": {
         "mockery/mockery": "dev-master@dev",

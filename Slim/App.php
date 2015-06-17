@@ -13,7 +13,7 @@ use Closure;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Interop\Container\ContainerInterface;
-use FastRoute\Dispatcher;
+use Slim\Router\Router;
 use Slim\Container;
 use Slim\Exception\Exception as SlimException;
 use Slim\Http\Uri;
@@ -131,12 +131,13 @@ class App
      *
      * @param  string $pattern  The route URI pattern
      * @param  mixed  $callable The route callback routine
+     * @param  string $name     Name of route (set to null for anonymous)
      *
      * @return \Slim\Interfaces\RouteInterface
      */
-    public function get($pattern, $callable)
+    public function get($pattern, $callable, $name = null)
     {
-        return $this->map(['GET'], $pattern, $callable);
+        return $this->map(['GET'], $pattern, $callable, $name);
     }
 
     /**
@@ -144,12 +145,13 @@ class App
      *
      * @param  string $pattern  The route URI pattern
      * @param  mixed  $callable The route callback routine
+     * @param  string $name     Name of route (set to null for anonymous)
      *
      * @return \Slim\Interfaces\RouteInterface
      */
-    public function post($pattern, $callable)
+    public function post($pattern, $callable, $name = null)
     {
-        return $this->map(['POST'], $pattern, $callable);
+        return $this->map(['POST'], $pattern, $callable, $name);
     }
 
     /**
@@ -157,12 +159,13 @@ class App
      *
      * @param  string $pattern  The route URI pattern
      * @param  mixed  $callable The route callback routine
+     * @param  string $name     Name of route (set to null for anonymous)
      *
      * @return \Slim\Interfaces\RouteInterface
      */
-    public function put($pattern, $callable)
+    public function put($pattern, $callable, $name = null)
     {
-        return $this->map(['PUT'], $pattern, $callable);
+        return $this->map(['PUT'], $pattern, $callable, $name);
     }
 
     /**
@@ -170,12 +173,13 @@ class App
      *
      * @param  string $pattern  The route URI pattern
      * @param  mixed  $callable The route callback routine
+     * @param  string $name     Name of route (set to null for anonymous)
      *
      * @return \Slim\Interfaces\RouteInterface
      */
-    public function patch($pattern, $callable)
+    public function patch($pattern, $callable, $name = null)
     {
-        return $this->map(['PATCH'], $pattern, $callable);
+        return $this->map(['PATCH'], $pattern, $callable, $name);
     }
 
     /**
@@ -183,12 +187,13 @@ class App
      *
      * @param  string $pattern  The route URI pattern
      * @param  mixed  $callable The route callback routine
+     * @param  string $name     Name of route (set to null for anonymous)
      *
      * @return \Slim\Interfaces\RouteInterface
      */
-    public function delete($pattern, $callable)
+    public function delete($pattern, $callable, $name = null)
     {
-        return $this->map(['DELETE'], $pattern, $callable);
+        return $this->map(['DELETE'], $pattern, $callable, $name);
     }
 
     /**
@@ -196,12 +201,13 @@ class App
      *
      * @param  string $pattern  The route URI pattern
      * @param  mixed  $callable The route callback routine
+     * @param  string $name     Name of route (set to null for anonymous)
      *
      * @return \Slim\Interfaces\RouteInterface
      */
-    public function options($pattern, $callable)
+    public function options($pattern, $callable, $name = null)
     {
-        return $this->map(['OPTIONS'], $pattern, $callable);
+        return $this->map(['OPTIONS'], $pattern, $callable, $name);
     }
 
     /**
@@ -209,12 +215,13 @@ class App
      *
      * @param  string $pattern  The route URI pattern
      * @param  mixed  $callable The route callback routine
+     * @param  string $name     Name of route (set to null for anonymous)
      *
      * @return \Slim\Interfaces\RouteInterface
      */
-    public function any($pattern, $callable)
+    public function any($pattern, $callable, $name = null)
     {
-        return $this->map(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], $pattern, $callable);
+        return $this->map(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], $pattern, $callable, $name);
     }
 
     /**
@@ -223,18 +230,19 @@ class App
      * @param  string[] $methods  Numeric array of HTTP method names
      * @param  string   $pattern  The route URI pattern
      * @param  mixed    $callable The route callback routine
+     * @param  string   $name     Name of route (set to null for anonymous)
      *
      * @return \Slim\Interfaces\RouteInterface
      */
-    public function map(array $methods, $pattern, $callable)
+    public function map(array $methods, $pattern, $callable, $name = null)
     {
         $callable = is_string($callable) ? $this->resolveCallable($callable) : $callable;
         if ($callable instanceof Closure) {
             $callable = $callable->bindTo($this);
         }
 
-        $route = $this->container->get('router')->map($methods, $pattern, $callable);
-        if (method_exists($route, 'setContainer')) {
+        $route = $this->container->get('router')->map($methods, $pattern, $callable, $name);
+        if (!is_callable($callable) && method_exists($route, 'setContainer')) {
             $route->setContainer($this->container);
         }
 
@@ -249,16 +257,13 @@ class App
      * that it is in.
      *
      * Accepts the same parameters as a standard route so:
-     * (pattern, middleware1, middleware2, ..., $callback)
+     * (pattern, $callback, $name)
      */
-    public function group()
+    public function group($pattern, $callback, $name = null)
     {
-        $args = func_get_args();
-        $pattern = array_shift($args);
-        $callable = array_pop($args);
-        $this->container->get('router')->pushGroup($pattern, $args);
-        if (is_callable($callable)) {
-            call_user_func($callable);
+        $this->container->get('router')->pushGroup($pattern, $callback, $name);
+        if (is_callable($callback)) {
+            call_user_func($callback);
         }
         $this->container->get('router')->popGroup();
     }
@@ -363,14 +368,20 @@ class App
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response)
     {
         $routeInfo = $this->container->get('router')->dispatch($request);
-        if ($routeInfo[0] === Dispatcher::FOUND) {
+        if ($routeInfo[0] === Router::MATCH_FOUND) {
             // URL decode the named arguments from the router
             $attributes = $routeInfo[2];
             foreach ($attributes as $k => $v) {
                 $request = $request->withAttribute($k, urldecode($v));
             }
+
+            $route = $routeInfo[1];
+
+            if (is_callable([$route, 'run'])) {
+                return $route->run($request, $response);
+            }
             return $routeInfo[1]($request, $response);
-        } else if ($routeInfo[0] === Dispatcher::METHOD_NOT_ALLOWED) {
+        } else if ($routeInfo[0] === Router::MATCH_METHOD_NOT_ALLOWED) {
             $notAllowedHandler = $this->container->get('notAllowedHandler');
             return $notAllowedHandler($request, $response, $routeInfo[1]);
         }
