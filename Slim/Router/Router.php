@@ -111,7 +111,7 @@ class Router implements RouterInterface
             $reason = self::MATCH_UNKNOWN;
             $failure = $this->router->getFailedRoute();
             if ($failure) {
-                $params = $route->params;
+                $params = $failure->params;
                 unset($params['action']);
 
                 if ($failure->failedMethod()) {
