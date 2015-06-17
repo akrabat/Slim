@@ -76,8 +76,11 @@ class Router implements RouterInterface
         // Prepend group pattern
         $groupMiddleware = [];
         if ($this->routeGroups) {
-            list($groupPattern, $groupMiddleware) = $this->processGroups();
+            list($groupPattern, $groupMiddleware, $groupName) = $this->processGroups();
             $pattern = $groupPattern . $pattern;
+            if ($groupName) {
+                $name = "$groupName.$name";
+            }
         }
 
         // Add route
@@ -139,27 +142,33 @@ class Router implements RouterInterface
     {
         $pattern = "";
         $middleware = [];
+        $name = "";
         foreach ($this->routeGroups as $group) {
             $k = key($group);
             $pattern .= $k;
-            if (is_array($group[$k])) {
-                $middleware = array_merge($middleware, $group[$k]);
+            if (is_array($group[$k]->getMiddleware())) {
+                $middleware = array_merge($middleware, $group[$k]->getMiddleware());
             }
+            $name .= $group[$k]->getName();
         }
-        return [$pattern, $middleware];
+        return [$pattern, $middleware, $name];
     }
 
     /**
      * Add a route group to the array
      *
-     * @param string     $group      The group pattern prefix
+     * @param string     $prefix      The group pattern prefix
      * @param array|null $middleware Optional middleware
      *
-     * @return int The index of the new group
+     * @return RouteGroup The new group
      */
-    public function pushGroup($group, $middleware = [])
+    public function pushGroup($prefix, $middleware = [], $name = 'null')
     {
-        return array_push($this->routeGroups, [$group => $middleware]);
+        $group = new RouteGroup($name, $middleware);
+
+        array_push($this->routeGroups, [$prefix => $group]);
+
+        return $group;
     }
 
     /**

@@ -256,16 +256,26 @@ class App
      * declarations in the callback will be prepended by the group(s)
      * that it is in.
      *
-     * Accepts the same parameters as a standard route so:
-     * (pattern, $callback, $name)
+     * Accepts the same parameters as a standard route along with an array of
+     * middleware:
+     * (pattern, $callback, $name, $middleware)
      */
-    public function group($pattern, $callback, $name = null)
+    public function group($pattern, $callback, $name = null, $middleware = [])
     {
-        $this->container->get('router')->pushGroup($pattern, $callback, $name);
+        if (empty($middleware)
+            && (is_array($name) || is_callable($name))
+        ) {
+            $middleware = $name;
+            $name = null;
+        }
+        $group = $this->container->get('router')->pushGroup($pattern, $middleware, $name);
+
         if (is_callable($callback)) {
             call_user_func($callback);
         }
         $this->container->get('router')->popGroup();
+
+        return $group;
     }
 
     /********************************************************************************
