@@ -94,6 +94,51 @@ class App
     }
 
     /**
+     * Enables simpler custom 500 error-handler functionality 
+     *
+     * @param callable $handler
+     * @return ContainerInterface
+     */
+    public function error(callable $handler)
+    {
+        $c = $this->getContainer();
+        $c['errorHandler'] = function($c) use ($c, $handler) {
+            return $handler;
+        };
+        return $this;
+    }
+
+    /**
+     * Enables simpler custom 404 error-handler functionality 
+     *
+     * @param callable $handler
+     * @return ContainerInterface
+     */
+    public function notFound(callable $handler)
+    {
+        $c = $this->getContainer();
+        $c['notFoundHandler'] = function($c) use ($c, $handler) {
+            return $handler;
+        };
+        return $this;
+    }
+
+    /**
+     * Enables simpler custom 405 error-handler functionality 
+     *
+     * @param callable $handler
+     * @return ContainerInterface
+     */
+    public function notAllowed(callable $handler)
+    {
+        $c = $this->getContainer();
+        $c['notAllowedHandler'] = function($c) use ($c, $handler) {
+            return $handler;
+        };
+        return $this;
+    }
+    
+    /**
      * Add middleware
      *
      * This method prepends new middleware to the app's middleware stack.
