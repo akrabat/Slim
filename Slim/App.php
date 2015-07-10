@@ -371,11 +371,9 @@ class App
     {
         $routeInfo = $this->container->get('router')->dispatch($request);
         if ($routeInfo[0] === Dispatcher::FOUND) {
-            $routeArguments = [];
             foreach ($routeInfo[2] as $k => $v) {
-                $routeArguments[$k] = urldecode($v);
+                $request = $request->withAttribute($k, urldecode($v));
             }
-            $request = $request->withAttribute('routeArguments', $routeArguments);
             return $routeInfo[1]($request, $response);
         } elseif ($routeInfo[0] === Dispatcher::METHOD_NOT_ALLOWED) {
             /** @var callable $notAllowedHandler */

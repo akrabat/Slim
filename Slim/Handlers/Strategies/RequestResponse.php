@@ -30,6 +30,6 @@ class RequestResponse implements InvocationStrategyInterface
      */
     public function __invoke(callable $callable, ServerRequestInterface $request, ResponseInterface $response)
     {
-        return $callable($request, $response, $request->getAttribute('routeArguments'));
+        return $callable($request, $response, $request->getAttributes());
     }
 }
