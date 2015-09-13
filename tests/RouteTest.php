@@ -8,6 +8,7 @@
  */
 namespace Slim\Tests;
 
+use Slim\CompositeContainer;
 use Slim\Container;
 use Slim\Http\Body;
 use Slim\Http\Environment;
@@ -156,7 +157,7 @@ class RouteTest extends \PHPUnit_Framework_TestCase
         $container = new Container();
         $container['MiddlewareStub'] = new MiddlewareStub();
 
-        $route->setContainer($container);
+        $route->setContainer(new CompositeContainer($container));
         $route->add('MiddlewareStub:run');
 
         $env = Environment::mock();
@@ -182,7 +183,7 @@ class RouteTest extends \PHPUnit_Framework_TestCase
 
         $container = new Container();
         $container['CallableTest'] = new CallableTest;
-        $route->setContainer($container);
+        $route->setContainer(new CompositeContainer($container));
 
         $uri = Uri::createFromString('https://example.com:80');
         $body = new Body(fopen('php://temp', 'r+'));

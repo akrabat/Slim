@@ -8,6 +8,7 @@
  */
 namespace Slim\Tests;
 
+use Slim\CompositeContainer;
 use Slim\Container;
 
 class ContainerTest extends \PHPUnit_Framework_TestCase
@@ -17,7 +18,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
      */
     public function testGet()
     {
-        $c = new Container;
+        $c = new CompositeContainer(new Container());
         $this->assertInstanceOf('\Slim\Http\Environment', $c->get('environment'));
     }
 
@@ -28,7 +29,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetWithError()
     {
-        $c = new Container;
+        $c = new CompositeContainer(new Container());
         $c->get('foo');
     }
 
@@ -37,8 +38,8 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetRequest()
     {
-        $c = new Container;
-        $this->assertInstanceOf('\Psr\Http\Message\RequestInterface', $c['request']);
+        $c = new CompositeContainer(new Container());
+        $this->assertInstanceOf('\Psr\Http\Message\RequestInterface', $c->get('request'));
     }
 
     /**
@@ -46,8 +47,8 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetResponse()
     {
-        $c = new Container;
-        $this->assertInstanceOf('\Psr\Http\Message\ResponseInterface', $c['response']);
+        $c = new CompositeContainer(new Container());
+        $this->assertInstanceOf('\Psr\Http\Message\ResponseInterface', $c->get('response'));
     }
 
     /**
@@ -55,8 +56,8 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetRouter()
     {
-        $c = new Container;
-        $this->assertInstanceOf('\Slim\Router', $c['router']);
+        $c = new CompositeContainer(new Container());
+        $this->assertInstanceOf('\Slim\Router', $c->get('router'));
     }
 
     /**
@@ -64,8 +65,8 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetErrorHandler()
     {
-        $c = new Container;
-        $this->assertInstanceOf('\Slim\Handlers\Error', $c['errorHandler']);
+        $c = new CompositeContainer(new Container());
+        $this->assertInstanceOf('\Slim\Handlers\Error', $c->get('errorHandler'));
     }
 
     /**
@@ -73,7 +74,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetNotAllowedHandler()
     {
-        $c = new Container;
-        $this->assertInstanceOf('\Slim\Handlers\NotAllowed', $c['notAllowedHandler']);
+        $c = new CompositeContainer(new Container());
+        $this->assertInstanceOf('\Slim\Handlers\NotAllowed', $c->get('notAllowedHandler'));
     }
 }

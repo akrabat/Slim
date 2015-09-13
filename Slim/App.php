@@ -81,7 +81,17 @@ class App
         if (!$container instanceof ContainerInterface) {
             throw new InvalidArgumentException('Expected a ContainerInterface');
         }
-        $this->container = $container;
+        $this->container = new CompositeContainer($container);
+    }
+
+    /**
+     * Enable access to the DI container by consumers of $app
+     *
+     * @return ContainerInterface
+     */
+    public function getCompositeContainer()
+    {
+        return $this->container;
     }
 
     /**
@@ -91,7 +101,7 @@ class App
      */
     public function getContainer()
     {
-        return $this->container;
+        return $this->container->getOriginalContainer();
     }
 
     /**
