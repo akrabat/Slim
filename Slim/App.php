@@ -511,15 +511,12 @@ class App
         $routeInfo = $router->dispatch($request);
 
         if ($routeInfo[0] === Dispatcher::FOUND) {
-            $routeArguments = [];
-            foreach ($routeInfo[2] as $k => $v) {
-                $routeArguments[$k] = urldecode($v);
-            }
-
-            $routeInfo[1][0]->prepare($request, $routeArguments);
+            $routeArguments = array_map('urldecode', $routeInfo[2]);
+            $route = $routeInfo[1][0];
+            $route->prepare($request, $routeArguments);
 
             // add route to the request's attributes in case a middleware or handler needs access to the route
-            $request = $request->withAttribute('route', $routeInfo[1][0]);
+            $request = $request->withAttribute('route', $route);
         }
 
         $routeInfo['request'] = [$request->getMethod(), (string) $request->getUri()];
