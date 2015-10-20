@@ -320,7 +320,7 @@ class App
         // Dispatch the Router first if the setting for this is on
         if ($this->container->get('settings')['determineRouteBeforeAppMiddleware'] === true) {
             // Dispatch router (note: you won't be able to alter routes after this)
-            $request = $this->dispatchRouterAndPrepareRoute($request);
+            $request = $this->dispatchRouterAndPrepareRoute($request, $router);
         }
 
         // Traverse middleware stack
@@ -438,7 +438,8 @@ class App
 
         // If router hasn't been dispatched or the URI changed then dispatch
         if (null === $routeInfo || ($routeInfo['request'] !== [$request->getMethod(), (string) $request->getUri()])) {
-            $request = $this->dispatchRouterAndPrepareRoute($request);
+            $router = $this->container->get('router');
+            $request = $this->dispatchRouterAndPrepareRoute($request, $router);
             $routeInfo = $request->getAttribute('routeInfo');
         }
 
@@ -501,11 +502,13 @@ class App
      * Dispatch the router to find the route. Prepare the route for use.
      *
      * @param ServerRequestInterface $request
+     * @param RouterInterface $request
+     *
      * @return ServerRequestInterface
      */
-    protected function dispatchRouterAndPrepareRoute(ServerRequestInterface $request)
+    protected function dispatchRouterAndPrepareRoute(ServerRequestInterface $request, RouterInterface $router)
     {
-        $routeInfo = $this->container->get('router')->dispatch($request);
+        $routeInfo = $router->dispatch($request);
 
         if ($routeInfo[0] === Dispatcher::FOUND) {
             $routeArguments = [];
