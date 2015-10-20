@@ -89,6 +89,20 @@ interface RouteInterface
      */
     public function prepare(ServerRequestInterface $request, array $arguments);
 
+     /**
+     * Run route
+     *
+     * This method traverses the middleware stack, including the route's callable
+     * and captures the resultant HTTP response object. It then sends the response
+     * back to the Application.
+     *
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @return ResponseInterface
+     */
+    public function run(ServerRequestInterface $request, ResponseInterface $response);
+
+
     /**
      * Dispatch route callable against current Request and Response objects
      *
