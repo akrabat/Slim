@@ -546,7 +546,7 @@ class UriTest extends \PHPUnit_Framework_TestCase
             'HTTPS' => '',
             'HTTP_X_FORWARDED_PROTO' => 'https'
         ]);
-        $uri = Uri::createFromEnvironment($environment);
+        $uri = Uri::createFromEnvironment($environment, true);
 
         $this->assertEquals('https', $uri->getScheme());
     }
@@ -563,7 +563,7 @@ class UriTest extends \PHPUnit_Framework_TestCase
             'SERVER_PORT' => 8080,
             'HTTP_X_FORWARDED_HOST' => 'example3.com, example2.com, example1.com'
         ]);
-        $uri = Uri::createFromEnvironment($environment);
+        $uri = Uri::createFromEnvironment($environment, true);
 
         $this->assertEquals('example3.com', $uri->getHost());
     }

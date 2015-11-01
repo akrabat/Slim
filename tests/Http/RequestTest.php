@@ -912,6 +912,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $serverParams = $env->all();
         $body = new RequestBody();
         $request = new Request('GET', $uri, $headers, $cookies, $serverParams, $body);
+        $request->setUseProxyHttpHeaders(true);
 
         $this->assertEquals('192.168.1.3', $request->getIp());
     }

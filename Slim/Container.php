@@ -57,6 +57,7 @@ final class Container extends PimpleContainer implements ContainerInterface
         'outputBuffering' => 'append',
         'determineRouteBeforeAppMiddleware' => false,
         'displayErrorDetails' => false,
+        'useProxyHttpHeadersInSlimHttpRequest' => false,
     ];
 
     /**
@@ -117,7 +118,10 @@ final class Container extends PimpleContainer implements ContainerInterface
              * @return ServerRequestInterface
              */
             $this['request'] = function ($c) {
-                return Request::createFromEnvironment($c->get('environment'));
+                return Request::createFromEnvironment(
+                    $c->get('environment'),
+                    $c->get('settings')['useProxyHttpHeadersInSlimHttpRequest']
+                );
             };
         }
 

@@ -109,6 +109,14 @@ class Request extends Message implements ServerRequestInterface
     protected $uploadedFiles;
 
     /**
+     * use proxy header with getIp(). Defaults to false as this is potentially
+     * insecure.
+     *
+     * @var boolean
+     */
+    protected $useProxyHttpHeaders = false;
+
+    /**
      * Valid request methods
      *
      * @var string[]
@@ -133,10 +141,10 @@ class Request extends Message implements ServerRequestInterface
      *
      * @return self
      */
-    public static function createFromEnvironment(Environment $environment)
+    public static function createFromEnvironment(Environment $environment, $useProxyHttpHeaders = false)
     {
         $method = $environment['REQUEST_METHOD'];
-        $uri = Uri::createFromEnvironment($environment);
+        $uri = Uri::createFromEnvironment($environment, $useProxyHttpHeaders);
         $headers = Headers::createFromEnvironment($environment);
         $cookies = Cookies::parseHeader($headers->get('Cookie', []));
         $serverParams = $environment->all();
@@ -144,6 +152,7 @@ class Request extends Message implements ServerRequestInterface
         $uploadedFiles = UploadedFile::createFromEnvironment($environment);
 
         $request = new static($method, $uri, $headers, $cookies, $serverParams, $body, $uploadedFiles);
+        $request->setUseProxyHttpHeaders($useProxyHttpHeaders);
 
         if ($method === 'POST' &&
             in_array($request->getMediaType(), ['application/x-www-form-urlencoded', 'multipart/form-data'])
@@ -1080,10 +1089,32 @@ class Request extends Message implements ServerRequestInterface
      */
     public function getIp()
     {
-        if ($this->hasHeader('X-Forwarded-For')) {
+        if ($this->useProxyHttpHeaders && $this->hasHeader('X-Forwarded-For')) {
             return trim(current(explode(',', $this->getHeaderLine('X-Forwarded-For'))));
         }
 
         return isset($this->serverParams['REMOTE_ADDR']) ? $this->serverParams['REMOTE_ADDR'] : null;
+    }
+
+    /**
+     * Getter for useProxyHttpHeaders
+     *
+     * @return boolean
+     */
+    public function getUseProxyHttpHeaders()
+    {
+        return $this->useProxyHttpHeaders;
+    }
+    
+    /**
+     * Setter for useProxyHttpHeaders
+     *
+     * @param boolean $useProxyHttpHeaders
+     * @return self
+     */
+    public function setUseProxyHttpHeaders($useProxyHttpHeaders)
+    {
+        $this->useProxyHttpHeaders = (bool)$useProxyHttpHeaders;
+        return $this;
     }
 }
