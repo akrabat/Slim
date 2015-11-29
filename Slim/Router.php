@@ -372,7 +372,7 @@ class Router implements RouterInterface
      */
     protected function buildNameIndex()
     {
-        $this->namedRoutes = [];
+        $this->namedRoutes = null;
         foreach ($this->routes as $route) {
             $name = $route->getName();
             if ($name) {
