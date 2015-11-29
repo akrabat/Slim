@@ -89,7 +89,7 @@ class Headers extends Collection implements HeadersInterface
      * any values that may already exist for the header name.
      *
      * @param string $key   The case-insensitive header name
-     * @param string $value The header value
+     * @param array|string $value The header value
      */
     public function set($key, $value)
     {

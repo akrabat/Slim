@@ -111,7 +111,7 @@ class Request extends Message implements ServerRequestInterface
     /**
      * Valid request methods
      *
-     * @var string[]
+     * @var int[]
      */
     protected $validMethods = [
         'CONNECT' => 1,
