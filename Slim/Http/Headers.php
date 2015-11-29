@@ -108,7 +108,7 @@ class Headers extends Collection implements HeadersInterface
      * @param  string  $key     The case-insensitive header name
      * @param  mixed   $default The default value if key does not exist
      *
-     * @return string[]
+     * @return mixed
      */
     public function get($key, $default = null)
     {
