@@ -217,4 +217,41 @@ class UploadedFilesTest extends \PHPUnit_Framework_TestCase
         $this->assertCount(1, $uploadedFiles);
         $this->assertInstanceOf(UploadedFile::class, $uploadedFiles['image']);
     }
+
+    public function testTwoUploadedFiles()
+    {
+        $env = Environment::mock([
+            '_FILES' => [
+                'image' => [
+                    'name' => [
+                        'logo.png',
+                        'logo.png',
+                    ],
+                    'type' => [
+                        'image/png',
+                        'image/png',
+                    ],
+                    'tmp_name' => [
+                        __DIR__ . '/_files/logo.png',
+                        __DIR__ . '/_files/logo.png',
+                    ],
+                    'error' => [
+                        0,
+                        0,
+                    ],
+                    'size' => [
+                        27671,
+                        27671,
+                    ],
+                ],
+            ]
+        ]);
+        $uploadedFiles = UploadedFile::createFromEnvironment($env);
+
+        $this->assertArrayHasKey('image', $uploadedFiles);
+        $this->assertCount(1, $uploadedFiles);
+        $this->assertCount(2, $uploadedFiles['image']);
+        $this->assertInstanceOf(UploadedFile::class, $uploadedFiles['image'][0]);
+        $this->assertInstanceOf(UploadedFile::class, $uploadedFiles['image'][1]);
+    }
 }
