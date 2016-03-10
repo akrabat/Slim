@@ -197,4 +197,24 @@ class UploadedFilesTest extends \PHPUnit_Framework_TestCase
 
         return $request;
     }
+
+    public function testOneUploadedFile()
+    {
+        $env = Environment::mock([
+            '_FILES' => [
+                'image' => [
+                    'name' => 'logo.png',
+                    'type' => 'image/png',
+                    'tmp_name' => __DIR__ . '/_files/logo.png',
+                    'error' => 0,
+                    'size' => 27671,
+                ],
+            ]
+        ]);
+        $uploadedFiles = UploadedFile::createFromEnvironment($env);
+
+        $this->assertArrayHasKey('image', $uploadedFiles);
+        $this->assertCount(1, $uploadedFiles);
+        $this->assertInstanceOf(UploadedFile::class, $uploadedFiles['image']);
+    }
 }

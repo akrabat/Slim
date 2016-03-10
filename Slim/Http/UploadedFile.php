@@ -85,6 +85,8 @@ class UploadedFile implements UploadedFileInterface
     {
         if (is_array($env['slim.files']) && $env->has('slim.files')) {
             return $env['slim.files'];
+        } elseif (is_array($env['_FILES'])) {
+            return static::parseUploadedFiles($env['_FILES']);
         } elseif (isset($_FILES)) {
             return static::parseUploadedFiles($_FILES);
         }
