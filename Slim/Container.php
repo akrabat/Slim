@@ -52,6 +52,7 @@ class Container extends PimpleContainer implements ContainerInterface
     private $defaultSettings = [
         'httpVersion' => '1.1',
         'responseChunkSize' => 4096,
+        'enforceReturnResponse' => false,
         'outputBuffering' => 'append',
         'determineRouteBeforeAppMiddleware' => false,
         'displayErrorDetails' => false,

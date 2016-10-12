@@ -65,6 +65,14 @@ class Route extends Routable implements RouteInterface
     protected $outputBuffering = 'append';
 
     /**
+     * If true, throw an exception if the route handler doesn't return
+     * a response
+     *
+     * @var boolean
+     */
+    protected $enforceReturnResponse = false;
+
+    /**
      * Route parameters
      *
      * @var array
@@ -207,6 +215,26 @@ class Route extends Routable implements RouteInterface
     }
 
     /**
+     * Get enforceReturnResponse mode
+     *
+     * @return boolean
+     */
+    public function getEnforceReturnResponse()
+    {
+        return $this->outputBuffering;
+    }
+
+    /**
+     * Set enforceReturnResponse mode
+     *
+     * @param boolean
+     */
+    public function setEnforceReturnResponse($mode)
+    {
+        $this->outputBuffering = (bool)$mode;
+    }
+
+    /**
      * Set route name
      *
      * @param string $name
@@ -335,7 +363,15 @@ class Route extends Routable implements RouteInterface
         /** @var InvocationStrategyInterface $handler */
         $handler = isset($this->container) ? $this->container->get('foundHandler') : new RequestResponse();
 
-        // invoke route callable
+        if ($this->enforceReturnResponse) {
+            $newResponse = $handler($this->callable, $request, $response, $this->arguments);
+            if (!$newResponse instanceof ResponseInterface) {
+                throw new \RuntimeException("You must return a response from the route handler");
+            }
+            return $newResponse;
+        }
+
+        // invoke route callable with output buffering options in play
         if ($this->outputBuffering === false) {
             $newResponse = $handler($this->callable, $request, $response, $this->arguments);
         } else {
