@@ -13,8 +13,9 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Slim\App;
-use Slim\Exception\MethodNotAllowedException;
-use Slim\Exception\NotFoundException;
+use Slim\Exception\HttpNotAllowedException;
+use Slim\Exception\HttpNotFoundException;
+use Slim\Handlers\ErrorRenderers\HTMLErrorRenderer;
 use Slim\Handlers\Strategies\RequestResponseArgs;
 use Slim\Http\Body;
 use Slim\Http\Environment;
@@ -87,6 +88,12 @@ class AppTest extends TestCase
         $app = new App();
         $app->addSetting('foo', 'bar');
         $this->assertAttributeContains('foo', 'settings', $app);
+    }
+
+    public function testGetErrorHandler()
+    {
+        $app = new App();
+        $this->assertInstanceOf('\Slim\Handlers\ErrorHandler', $app->getErrorHandler());
     }
 
     /********************************************************************************
@@ -1017,6 +1024,11 @@ class AppTest extends TestCase
         $req = new Request('POST', $uri, $headers, $cookies, $serverParams, $body);
         $res = new Response();
 
+        // Create Html Renderer and Assert Output
+        $exception = new HttpNotAllowedException;
+        $exception->setAllowedMethods(['GET']);
+        $renderer = new HTMLErrorRenderer($exception, false);
+
         // Invoke app
         $resOut = $app($req, $res);
 
@@ -1024,7 +1036,7 @@ class AppTest extends TestCase
         $this->assertEquals(405, (string)$resOut->getStatusCode());
         $this->assertEquals(['GET'], $resOut->getHeader('Allow'));
         $this->assertContains(
-            '<p>Method not allowed. Must be one of: <strong>GET</strong></p>',
+            $renderer->render(),
             (string)$resOut->getBody()
         );
 
@@ -1788,28 +1800,6 @@ class AppTest extends TestCase
     }
 
     /**
-     * throws \Exception
-     * throws \Slim\Exception\MethodNotAllowedException
-     * throws \Slim\Exception\NotFoundException
-     * expectedException \Exception
-     */
-//    public function testRunExceptionNoHandler()
-//    {
-//        $app = $this->appFactory();
-//
-//        $container = $app->getContainer();
-//        unset($container['errorHandler']);
-//
-//        $app->get('/foo', function ($req, $res, $args) {
-//            return $res;
-//        });
-//        $app->add(function ($req, $res, $args) {
-//            throw new \Exception();
-//        });
-//        $res = $app->run(true);
-//    }
-
-    /**
      * @requires PHP 7.0
      */
     public function testRunThrowable()
@@ -1837,31 +1827,13 @@ class AppTest extends TestCase
         $app->get('/foo', function ($req, $res, $args) {
             return $res;
         });
-        $app->add(function ($req, $res, $args) {
-            throw new NotFoundException($req, $res);
+        $app->add(function () {
+            throw new HttpNotFoundException;
         });
         $res = $app->run(true);
 
         $this->assertEquals(404, $res->getStatusCode());
     }
-
-    /**
-     * expectedException \Slim\Exception\NotFoundException
-     */
-//    public function testRunNotFoundWithoutHandler()
-//    {
-//        $app = $this->appFactory();
-//        $container = $app->getContainer();
-//        unset($container['notFoundHandler']);
-//
-//        $app->get('/foo', function ($req, $res, $args) {
-//            return $res;
-//        });
-//        $app->add(function ($req, $res, $args) {
-//            throw new NotFoundException($req, $res);
-//        });
-//        $res = $app->run(true);
-//    }
 
     public function testRunNotAllowed()
     {
@@ -1869,31 +1841,13 @@ class AppTest extends TestCase
         $app->get('/foo', function ($req, $res, $args) {
             return $res;
         });
-        $app->add(function ($req, $res, $args) {
-            throw new MethodNotAllowedException($req, $res, ['POST']);
+        $app->add(function () {
+            throw new HttpNotAllowedException;
         });
         $res = $app->run(true);
 
         $this->assertEquals(405, $res->getStatusCode());
     }
-
-    /**
-     * expectedException \Slim\Exception\MethodNotAllowedException
-     */
-//    public function testRunNotAllowedWithoutHandler()
-//    {
-//        $app = $this->appFactory();
-//        $container = $app->getContainer();
-//        unset($container['notAllowedHandler']);
-//
-//        $app->get('/foo', function ($req, $res, $args) {
-//            return $res;
-//        });
-//        $app->add(function ($req, $res, $args) {
-//            throw new MethodNotAllowedException($req, $res, ['POST']);
-//        });
-//        $res = $app->run(true);
-//    }
 
     public function testAppRunWithdetermineRouteBeforeAppMiddleware()
     {
@@ -1988,8 +1942,9 @@ class AppTest extends TestCase
         $request = new Request('GET', Uri::createFromString(''), $headers, [], [], $body);
         $response = new Response();
 
+        $exception = new HttpNotFoundException;
         $notFoundHandler = $app->getNotFoundHandler();
-        $response = $notFoundHandler($request, $response);
+        $response = $notFoundHandler($request, $response, $exception);
 
         $this->assertSame(404, $response->getStatusCode());
     }
@@ -2148,25 +2103,6 @@ class AppTest extends TestCase
 
         $result = $method->invoke(new App(), $response);
         $this->assertTrue($result);
-    }
-
-    public function testHandlePhpError()
-    {
-        $this->skipIfPhp70();
-        $method = new \ReflectionMethod('Slim\App', 'handlePhpError');
-        $method->setAccessible(true);
-
-        $throwable = $this->getMockBuilder('\Throwable')
-            ->setMethods(['getCode', 'getMessage', 'getFile', 'getLine', 'getTraceAsString', 'getPrevious'])->getMock();
-
-        $req = $this->getMockBuilder('Slim\Http\Request')->disableOriginalConstructor()->getMock();
-        $res = new Response();
-
-        $res = $method->invoke(new App(), $throwable, $req, $res);
-
-        $this->assertSame(500, $res->getStatusCode());
-        $this->assertSame('text/html', $res->getHeaderLine('Content-Type'));
-        $this->assertEquals(0, strpos((string)$res->getBody(), '<html>'));
     }
 
     protected function skipIfPhp70()
