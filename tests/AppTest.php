@@ -15,6 +15,8 @@ use Psr\Http\Message\ResponseInterface;
 use Slim\App;
 use Slim\Exception\HttpNotAllowedException;
 use Slim\Exception\HttpNotFoundException;
+use Slim\Exception\PhpException;
+use Slim\Handlers\ErrorHandler;
 use Slim\Handlers\ErrorRenderers\HTMLErrorRenderer;
 use Slim\Handlers\Strategies\RequestResponseArgs;
 use Slim\Http\Body;
@@ -26,6 +28,8 @@ use Slim\Http\Response;
 use Slim\Http\Uri;
 use Slim\Router;
 use Slim\Tests\Mocks\MockAction;
+use Slim\Tests\Mocks\MockCustomException;
+use Slim\Tests\Mocks\MockErrorHandler;
 
 class AppTest extends TestCase
 {
@@ -43,7 +47,6 @@ class AppTest extends TestCase
     /********************************************************************************
      * Settings management methods
      *******************************************************************************/
-
     public function testHasSetting()
     {
         $app = new App();
@@ -99,7 +102,6 @@ class AppTest extends TestCase
     /********************************************************************************
      * Router proxy methods
      *******************************************************************************/
-
     public function testGetRoute()
     {
         $path = '/foo';
@@ -790,7 +792,6 @@ class AppTest extends TestCase
     /********************************************************************************
      * Middleware
      *******************************************************************************/
-
     public function testBottomMiddlewareIsApp()
     {
         $app = new App();
@@ -996,11 +997,69 @@ class AppTest extends TestCase
         $this->assertEquals('In1In2In3CenterOut3Out2Out1', (string)$res->getBody());
     }
 
+    /********************************************************************************
+     * Error Handlers
+     *******************************************************************************/
+    public function testSetErrorHandler()
+    {
+        $app = $this->appFactory();
+        $app->get('/foo', function ($req, $res, $args) {
+            return $res;
+        });
+        $app->add(function () {
+            throw new HttpNotFoundException;
+        });
+        $exception = HttpNotFoundException::class;
+        $handler = function ($req, $res) {
+            return $res->withJson(['Oops..']);
+        };
+        $app->setErrorHandler($exception, $handler);
+        $res = $app->run(true);
+        $expectedOutput = json_encode(['Oops..']);
+
+        $this->assertEquals($res->getBody(), $expectedOutput);
+    }
+
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testSetErrorHandlerThrowsExceptionWhenInvalidArgumentPassed()
+    {
+        $app = new App();
+        $app->setErrorHandler('RandomExceptionClassName', 'NonExistantClassname');
+    }
+
+    public function testGetErrorHandlerInstantiatesHandlerFromString()
+    {
+        $app = new App();
+        $exception = HttpNotFoundException::class;
+        $app->setErrorHandler($exception, MockErrorHandler::class);
+        $handler = $app->getErrorHandler($exception);
+
+        $this->assertInstanceOf(MockErrorHandler::class, $handler);
+    }
+
+    public function testGetErrorHandlerWillReturnDefaultErrorHandlerForPhpExceptions()
+    {
+        $app = new App();
+        $exception = PhpException::class;
+        $handler = $app->getErrorHandler($exception);
+
+        $this->assertInstanceOf(ErrorHandler::class, $handler);
+    }
+
+    public function testGetErrorHandlerWillReturnDefaultErrorHandlerForUnhandledExceptions()
+    {
+        $app = new App();
+        $exception = MockCustomException::class;
+        $handler = $app->getErrorHandler($exception);
+
+        $this->assertInstanceOf(ErrorHandler::class, $handler);
+    }
 
     /********************************************************************************
      * Runner
      *******************************************************************************/
-
     public function testInvokeReturnMethodNotAllowed()
     {
         $app = new App();
@@ -1482,7 +1541,6 @@ class AppTest extends TestCase
 
         $this->assertEquals('bar', (string)$resOut);
     }
-
 
     public function testRespond()
     {
