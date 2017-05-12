@@ -1007,7 +1007,7 @@ class AppTest extends TestCase
             return $res;
         });
         $app->add(function () {
-            throw new HttpNotFoundException;
+            throw new HttpNotFoundException();
         });
         $exception = HttpNotFoundException::class;
         $handler = function ($req, $res) {
@@ -1020,6 +1020,15 @@ class AppTest extends TestCase
         $this->assertEquals($res->getBody(), $expectedOutput);
     }
 
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testSetErrorHandlerThrowsExceptionWhenInvalidCallableIsPassed()
+    {
+        $app = new App();
+        $app->setErrorHandler(HttpNotFoundException::class, 'UnresolvableCallable');
+    }
+
     public function testSetDefaultErrorHandler()
     {
         $app = $this->appFactory();
@@ -1027,7 +1036,7 @@ class AppTest extends TestCase
             return $res;
         });
         $app->add(function () {
-            throw new HttpNotFoundException;
+            throw new HttpNotFoundException();
         });
         $handler = function ($req, $res) {
             return $res->withJson(['Oops..']);
@@ -1042,25 +1051,16 @@ class AppTest extends TestCase
     /**
      * @expectedException \RuntimeException
      */
-    public function testSetErrorHandlerThrowsExceptionWhenInvalidArgumentPassed()
+    public function testSetDefaultErrorHandlerThrowsExceptionWhenInvalidCallableIsPassed()
     {
         $app = new App();
-        $app->setErrorHandler('RandomExceptionClassName', 'InvalidParameter');
-    }
-
-    /**
-     * @expectedException \RuntimeException
-     */
-    public function testSetDefaultErrorHandlerThrowsExceptionWhenInvalidArgumentPassed()
-    {
-        $app = new App();
-        $app->setDefaultErrorHandler('RandomExceptionClassName');
+        $app->setDefaultErrorHandler(HttpNotFoundException::class, 'UnresolvableCallable');
     }
 
     public function testErrorHandlerShortcuts()
     {
         $app = new App();
-        $handler = new MockErrorHandler;
+        $handler = new MockErrorHandler();
         $app->setNotAllowedHandler($handler);
         $app->setNotFoundHandler($handler);
         $app->setPhpErrorHandler($handler);

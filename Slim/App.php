@@ -16,7 +16,6 @@ use Slim\Exception\HttpException;
 use Slim\Exception\HttpNotFoundException;
 use Slim\Exception\HttpNotAllowedException;
 use Slim\Exception\PhpException;
-use Slim\Handlers\AbstractErrorHandler;
 use Slim\Handlers\ErrorHandler;
 use Slim\Interfaces\CallableResolverInterface;
 use Slim\Interfaces\ErrorHandlerInterface;
@@ -25,7 +24,6 @@ use Slim\Interfaces\RouteInterface;
 use Slim\Interfaces\RouterInterface;
 use BadMethodCallException;
 use Exception;
-use RuntimeException;
 use Throwable;
 
 /**
@@ -271,26 +269,21 @@ class App
      *
      * 1. Instance of \Psr\Http\Message\ServerRequestInterface
      * 2. Instance of \Psr\Http\Message\ResponseInterface
-     * 3. Instance of Exception
+     * 3. Instance of \Exception
      * 4. Boolean displayErrorDetails (optional)
      *
      * The callable MUST return an instance of
      * \Psr\Http\Message\ResponseInterface.
      *
      * @param string $type
-     * @param callable $handler
+     * @param callable $callable
+     *
+     * @throws \RuntimeException
      */
-    public function setErrorHandler($type, $handler)
+    public function setErrorHandler($type, $callable)
     {
-        if (!is_callable($handler)) {
-            throw new RuntimeException(sprintf(
-                'Invalid parameter %s of type %s passed to the setErrorHandler method. ' .
-                'Please provide a callable function.',
-                $handler,
-                gettype($handler)
-            ));
-        }
-
+        $resolver = $this->getCallableResolver();
+        $handler = $resolver->resolve($callable);
         $handlers = $this->getSetting('errorHandlers', []);
         $handlers[$type] = $handler;
         $this->addSetting('errorHandlers', $handlers);
@@ -326,25 +319,20 @@ class App
      *
      * 1. Instance of \Psr\Http\Message\ServerRequestInterface
      * 2. Instance of \Psr\Http\Message\ResponseInterface
-     * 3. Instance of Exception
+     * 3. Instance of \Exception
      * 4. Boolean displayErrorDetails (optional)
      *
      * The callable MUST return an instance of
      * \Psr\Http\Message\ResponseInterface.
      *
-     * @param callable $handler
+     * @param callable $callable
+     *
+     * @throws \RuntimeException
      */
-    public function setDefaultErrorHandler($handler)
+    public function setDefaultErrorHandler($callable)
     {
-        if (!is_callable($handler)) {
-            throw new RuntimeException(sprintf(
-                'Invalid parameter %s of type %s passed to the setDefaultErrorHandler method. ' .
-                'Please provide a callable function.',
-                $handler,
-                gettype($handler)
-            ));
-        }
-
+        $resolver = $this->getCallableResolver();
+        $handler = $resolver->resolve($callable);
         $this->addSetting('defaultErrorHandler', $handler);
     }
 
@@ -355,7 +343,7 @@ class App
      */
     public function getDefaultErrorHandler()
     {
-        return $this->getSetting('defaultErrorHandler', new ErrorHandler);
+        return $this->getSetting('defaultErrorHandler', new ErrorHandler());
     }
 
     /**
@@ -367,7 +355,7 @@ class App
      *
      * 1. Instance of \Psr\Http\Message\ServerRequestInterface
      * 2. Instance of \Psr\Http\Message\ResponseInterface
-     * 3. Instance of Exception
+     * 3. Instance of \Exception
      * 4. Boolean displayErrorDetails (optional)
      *
      * The callable MUST return an instance of
@@ -400,7 +388,7 @@ class App
      *
      * 1. Instance of \Psr\Http\Message\ServerRequestInterface
      * 2. Instance of \Psr\Http\Message\ResponseInterface
-     * 3. Instance of Exception
+     * 3. Instance of \Exception
      * 4. Boolean displayErrorDetails (optional)
      *
      * The callable MUST return an instance of
@@ -433,7 +421,7 @@ class App
      *
      * 1. Instance of \Psr\Http\Message\ServerRequestInterface
      * 2. Instance of \Psr\Http\Message\ResponseInterface
-     * 3. Instance of Exception
+     * 3. Instance of \Exception
      * 4. Boolean displayErrorDetails (optional)
      *
      * Or a subclass name of AbstractErrorHandler
@@ -864,7 +852,7 @@ class App
         // Add Content-Length header if `addContentLengthHeader` setting is set
         if ($this->getSetting('addContentLengthHeader') == true) {
             if (ob_get_length() > 0) {
-                throw new RuntimeException("Unexpected data in output buffer. " .
+                throw new \RuntimeException("Unexpected data in output buffer. " .
                     "Maybe you have characters before an opening <?php tag?");
             }
             $size = $response->getBody()->getSize();
