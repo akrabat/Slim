@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Slim\App;
+use Slim\Container;
 use Slim\Exception\HttpNotAllowedException;
 use Slim\Exception\HttpNotFoundException;
 use Slim\Exception\PhpException;
@@ -1086,6 +1087,20 @@ class AppTest extends TestCase
         $handler = $app->getErrorHandler($exception);
 
         $this->assertInstanceOf(ErrorHandler::class, $handler);
+    }
+
+    public function testGetErrorHandlerResolvesContainerCallableWhenHandlerPassedIntoSettings()
+    {
+        $app = new App();
+        $container = new Container();
+        $container[MockErrorHandler::class] = function ($c) {
+            return new MockErrorHandler();
+        };
+        $app->setContainer($container);
+        $app->setNotAllowedHandler(MockErrorHandler::class);
+        $handler = $app->getErrorHandler(HttpNotAllowedException::class);
+
+        $this->assertEquals([new MockErrorHandler(), '__invoke'], $handler);
     }
 
     /**

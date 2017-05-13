@@ -304,10 +304,8 @@ class App
 
         if (isset($handlers[$type])) {
             $handler = $handlers[$type];
-
-            if (is_callable($handler)) {
-                return $handler;
-            }
+            $resolver = $this->getCallableResolver();
+            return $resolver->resolve($handler);
         }
 
         return $this->getDefaultErrorHandler();
