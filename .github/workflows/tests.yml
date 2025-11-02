@@ -17,7 +17,7 @@ jobs:
         experimental: [false]
         composer-options: ['']
         include:
-          - php: 8.4
+          - php: 8.2
             analysis: true
           - php: 8.5
             experimental: false
