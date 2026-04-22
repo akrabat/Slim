@@ -8,17 +8,17 @@
 namespace Slim\Tests\Handlers;
 
 use Exception;
-use PHPUnit_Framework_MockObject_MockObject;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Slim\Handlers\PhpError;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Throwable;
 use UnexpectedValueException;
 
-class PhpErrorTest extends PHPUnit_Framework_TestCase
+class PhpErrorTest extends TestCase
 {
-    public function phpErrorProvider()
+    public static function phpErrorProvider()
     {
         return [
             ['application/json', 'application/json', '{'],
@@ -73,13 +73,13 @@ class PhpErrorTest extends PHPUnit_Framework_TestCase
      */
     public function testNotFoundContentType()
     {
-        $errorMock = $this->getMockBuilder(PhpError::class)->setMethods(['determineContentType'])->getMock();
+        $errorMock = $this->getMockBuilder(PhpError::class)->onlyMethods(['determineContentType'])->getMock();
         $errorMock->method('determineContentType')
             ->will($this->returnValue('unknown/type'));
 
         $req = $this->getMockBuilder('Slim\Http\Request')->disableOriginalConstructor()->getMock();
 
-        $this->setExpectedException('\UnexpectedValueException');
+        $this->expectException('\UnexpectedValueException');
         $errorMock->__invoke($req, new Response(), new Exception());
     }
 
@@ -95,10 +95,9 @@ class PhpErrorTest extends PHPUnit_Framework_TestCase
         $error = new PhpError();
 
         /** @var Throwable $throwable */
-        $throwable = $this->getMock(
-            '\Throwable',
-            ['getCode', 'getMessage', 'getFile', 'getLine', 'getTraceAsString', 'getPrevious']
-        );
+        $throwable = $this->getMockBuilder('\Throwable')
+            ->onlyMethods(['getCode', 'getMessage', 'getFile', 'getLine', 'getTraceAsString', 'getPrevious'])
+            ->getMock();
 
         $res = $error->__invoke($this->getRequest('GET', $acceptHeader), new Response(), $throwable);
 
@@ -119,10 +118,9 @@ class PhpErrorTest extends PHPUnit_Framework_TestCase
         $error = new PhpError(true);
 
         /** @var Throwable $throwable */
-        $throwable = $this->getMock(
-            '\Throwable',
-            ['getCode', 'getMessage', 'getFile', 'getLine', 'getTraceAsString', 'getPrevious']
-        );
+        $throwable = $this->getMockBuilder('\Throwable')
+            ->onlyMethods(['getCode', 'getMessage', 'getFile', 'getLine', 'getTraceAsString', 'getPrevious'])
+            ->getMock();
 
         $throwablePrev = clone $throwable;
 
@@ -142,12 +140,12 @@ class PhpErrorTest extends PHPUnit_Framework_TestCase
 
     /**
      * @requires PHP 5.0
-     * @expectedException UnexpectedValueException
      */
     public function testNotFoundContentType5()
     {
+        $this->expectException(\UnexpectedValueException::class);
         $this->skipIfPhp70();
-        $errorMock = $this->getMock(PhpError::class, ['determineContentType']);
+        $errorMock = $this->getMockBuilder(PhpError::class)->onlyMethods(['determineContentType'])->getMock();
         $errorMock->method('determineContentType')
             ->will($this->returnValue('unknown/type'));
 
@@ -160,7 +158,7 @@ class PhpErrorTest extends PHPUnit_Framework_TestCase
     /**
      * @param string $method
      *
-     * @return PHPUnit_Framework_MockObject_MockObject|Request
+     * @return PHPUnit\Framework\MockObject\MockObject|Request
      */
     protected function getRequest($method, $acceptHeader)
     {

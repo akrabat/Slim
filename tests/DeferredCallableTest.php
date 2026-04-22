@@ -7,12 +7,12 @@
 
 namespace Slim\Tests;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Slim\Container;
 use Slim\DeferredCallable;
 use Slim\Tests\Mocks\CallableTest;
 
-class DeferredCallableTest extends PHPUnit_Framework_TestCase
+class DeferredCallableTest extends TestCase
 {
     public function testItResolvesCallable()
     {
@@ -27,7 +27,7 @@ class DeferredCallableTest extends PHPUnit_Framework_TestCase
 
     public function testItBindsClosuresToContainer()
     {
-        $assertCalled = $this->getMockBuilder('StdClass')->setMethods(['foo'])->getMock();
+        $assertCalled = $this->getMockBuilder('StdClass')->addMethods(['foo'])->getMock();
         $assertCalled
             ->expects($this->once())
             ->method('foo');

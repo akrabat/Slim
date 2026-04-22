@@ -8,7 +8,7 @@
 namespace Slim\Tests;
 
 use Exception;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Slim\Container;
 use Slim\DeferredCallable;
 use Slim\Http\Body;
@@ -22,7 +22,7 @@ use Slim\Tests\Mocks\CallableTest;
 use Slim\Tests\Mocks\InvocationStrategyTest;
 use Slim\Tests\Mocks\MiddlewareStub;
 
-class RouteTest extends PHPUnit_Framework_TestCase
+class RouteTest extends TestCase
 {
     public function routeFactory()
     {
@@ -44,9 +44,9 @@ class RouteTest extends PHPUnit_Framework_TestCase
         };
         $route = new Route($methods, $pattern, $callable);
 
-        $this->assertAttributeEquals($methods, 'methods', $route);
-        $this->assertAttributeEquals($pattern, 'pattern', $route);
-        $this->assertAttributeEquals($callable, 'callable', $route);
+        $this->assertEquals($methods, $route->getMethods());
+        $this->assertEquals($pattern, $route->getPattern());
+        $this->assertEquals($callable, $route->getCallable());
     }
 
     public function testGetMethodsReturnsArrayWhenContructedWithString()
@@ -72,7 +72,7 @@ class RouteTest extends PHPUnit_Framework_TestCase
     {
         $callable = $this->routeFactory()->getCallable();
 
-        $this->assertInternalType('callable', $callable);
+        $this->assertIsCallable($callable);
     }
 
     public function testArgumentSetting()
@@ -176,7 +176,7 @@ class RouteTest extends PHPUnit_Framework_TestCase
     {
         $route = $this->routeFactory();
 
-        $this->setExpectedException('InvalidArgumentException');
+        $this->expectException('InvalidArgumentException');
 
         $route->setName(false);
     }
@@ -201,7 +201,7 @@ class RouteTest extends PHPUnit_Framework_TestCase
     {
         $route = $this->routeFactory();
 
-        $this->setExpectedException('InvalidArgumentException');
+        $this->expectException('InvalidArgumentException');
 
         $route->setOutputBuffering('invalid');
     }
@@ -298,11 +298,9 @@ class RouteTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('foo', (string)$response->getBody());
     }
 
-    /**
-     * @expectedException Exception
-     */
     public function testInvokeWithException()
     {
+        $this->expectException(\Exception::class);
         $callable = function ($req, $res, $args) {
             throw new Exception();
         };

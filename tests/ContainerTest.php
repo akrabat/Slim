@@ -8,19 +8,18 @@
 namespace Slim\Tests;
 
 use InvalidArgumentException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Slim\Container;
 
-class ContainerTest extends PHPUnit_Framework_TestCase
+class ContainerTest extends TestCase
 {
     /**
      * @var Container
      */
     protected $container;
 
-    public function setUp()
-    {
+    public function setUp(): void    {
         $this->container = new Container;
     }
 
@@ -29,22 +28,19 @@ class ContainerTest extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf('\Slim\Http\Environment', $this->container->get('environment'));
     }
 
-    /**
-     * @expectedException \Slim\Exception\ContainerValueNotFoundException
-     */
     public function testGetWithValueNotFoundError()
     {
+        $this->expectException(\Slim\Exception\ContainerValueNotFoundException::class);
         $this->container->get('foo');
     }
 
     /**
      * Test `get()` throws something that is a ContainerException - typically a NotFoundException, when there is a DI
      * config error
-     *
-     * @expectedException \Slim\Exception\ContainerValueNotFoundException
      */
     public function testGetWithDiConfigErrorThrownAsContainerValueNotFoundException()
     {
+        $this->expectException(\Slim\Exception\ContainerValueNotFoundException::class);
         $container = new Container;
         $container['foo'] =
             function (ContainerInterface $container) {
@@ -57,11 +53,10 @@ class ContainerTest extends PHPUnit_Framework_TestCase
     /**
      * Test `get()` recasts InvalidArgumentException as psr/container exceptions when an error is present
      * in the DI config
-     *
-     * @expectedException \Slim\Exception\ContainerException
      */
     public function testGetWithDiConfigErrorThrownAsInvalidArgumentException()
     {
+        $this->expectException(\Slim\Exception\ContainerException::class);
         $container = new Container;
         $container['foo'] =
             function (ContainerInterface $container) {
@@ -73,12 +68,11 @@ class ContainerTest extends PHPUnit_Framework_TestCase
 
     /**
      * Test `get()` does not recast exceptions which are thrown in a factory closure
-     *
-     * @expectedException InvalidArgumentException
      */
     public function testGetWithErrorThrownByFactoryClosure()
     {
-        $invokable = $this->getMockBuilder('StdClass')->setMethods(['__invoke'])->getMock();
+        $this->expectException(\InvalidArgumentException::class);
+        $invokable = $this->getMockBuilder('StdClass')->addMethods(['__invoke'])->getMock();
         /** @var callable $invokable */
         $invokable->expects($this->any())
             ->method('__invoke')

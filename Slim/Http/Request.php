@@ -490,7 +490,7 @@ class Request extends Message implements ServerRequestInterface
         } else {
             $basePath = '';
         }
-        $path = $this->uri->getPath();
+        $path = (string)$this->uri->getPath();
         $path = $basePath . '/' . ltrim($path, '/');
 
         $query = $this->uri->getQuery();
@@ -1011,7 +1011,7 @@ class Request extends Message implements ServerRequestInterface
             return null;
         }
 
-        $mediaType = $this->getMediaType();
+        $mediaType = (string)$this->getMediaType();
 
         // Check if this specific media type has a parser registered first
         if (!isset($this->bodyParsers[$mediaType])) {
@@ -1188,7 +1188,7 @@ class Request extends Message implements ServerRequestInterface
      *
      * @return mixed[]
      */
-    public function getParams(array $only = null)
+    public function getParams(?array $only = null)
     {
         $params = $this->getQueryParams();
         $postParams = $this->getParsedBody();

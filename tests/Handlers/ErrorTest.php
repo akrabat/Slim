@@ -8,8 +8,8 @@
 namespace Slim\Tests\Handlers;
 
 use Exception;
-use PHPUnit_Framework_MockObject_MockObject;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use RuntimeException;
 use Slim\Handlers\Error;
@@ -17,9 +17,9 @@ use Slim\Http\Request;
 use Slim\Http\Response;
 use UnexpectedValueException;
 
-class ErrorTest extends PHPUnit_Framework_TestCase
+class ErrorTest extends TestCase
 {
-    public function errorProvider()
+    public static function errorProvider()
     {
         return [
             ['application/json', 'application/json', '{'],
@@ -67,12 +67,10 @@ class ErrorTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(0, strpos((string)$res->getBody(), $startOfBody));
     }
 
-    /**
-     * @expectedException UnexpectedValueException
-     */
     public function testNotFoundContentType()
     {
-        $errorMock = $this->getMockBuilder(Error::class)->setMethods(['determineContentType'])->getMock();
+        $this->expectException(\UnexpectedValueException::class);
+        $errorMock = $this->getMockBuilder(Error::class)->onlyMethods(['determineContentType'])->getMock();
         $errorMock->method('determineContentType')
             ->will($this->returnValue('unknown/type'));
 
@@ -89,7 +87,7 @@ class ErrorTest extends PHPUnit_Framework_TestCase
      */
     public function testPreviousException()
     {
-        $error = $this->getMockBuilder('\Slim\Handlers\Error')->setMethods(['logError'])->getMock();
+        $error = $this->getMockBuilder('\Slim\Handlers\Error')->onlyMethods(['logError'])->getMock();
         $error->expects($this->once())->method('logError')->with(
             $this->logicalAnd(
                 $this->stringContains("Type: Exception" . PHP_EOL . "Message: Second Oops"),
@@ -111,9 +109,8 @@ class ErrorTest extends PHPUnit_Framework_TestCase
     {
         $class = new ReflectionClass(Error::class);
         $renderHtmlExceptionorError = $class->getMethod('renderHtmlExceptionOrError');
-        $renderHtmlExceptionorError->setAccessible(true);
 
-        $this->setExpectedException(RuntimeException::class);
+        $this->expectException(RuntimeException::class);
 
         $error = new Error();
         $renderHtmlExceptionorError->invokeArgs($error, ['foo']);
@@ -122,7 +119,7 @@ class ErrorTest extends PHPUnit_Framework_TestCase
     /**
      * @param string $method
      *
-     * @return PHPUnit_Framework_MockObject_MockObject|Request
+     * @return PHPUnit\Framework\MockObject\MockObject|Request
      */
     protected function getRequest($method, $acceptHeader)
     {

@@ -8,11 +8,11 @@
 namespace Slim\Tests\Http;
 
 use InvalidArgumentException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 use Slim\Http\Body;
 
-class BodyTest extends PHPUnit_Framework_TestCase
+class BodyTest extends TestCase
 {
     /**
      * @var string
@@ -25,8 +25,7 @@ class BodyTest extends PHPUnit_Framework_TestCase
      */
     protected $stream;
 
-    protected function tearDown()
-    {
+    protected function tearDown(): void    {
         if (is_resource($this->stream) === true) {
             fclose($this->stream);
         }
@@ -55,16 +54,13 @@ class BodyTest extends PHPUnit_Framework_TestCase
         $this->stream = $this->resourceFactory();
         $body = new Body($this->stream);
         $bodyStream = new ReflectionProperty($body, 'stream');
-        $bodyStream->setAccessible(true);
 
         $this->assertSame($this->stream, $bodyStream->getValue($body));
     }
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
     public function testConstructorInvalidStream()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $this->stream = 'foo';
         $body = new Body($this->stream);
     }
@@ -74,7 +70,7 @@ class BodyTest extends PHPUnit_Framework_TestCase
         $this->stream = $this->resourceFactory();
         $body = new Body($this->stream);
 
-        $this->assertInternalType('array', $body->getMetadata());
+        $this->assertIsArray($body->getMetadata());
     }
 
     public function testGetMetadataKey()
@@ -99,19 +95,14 @@ class BodyTest extends PHPUnit_Framework_TestCase
         $body = new Body($this->stream);
 
         $bodyStream = new ReflectionProperty($body, 'stream');
-        $bodyStream->setAccessible(true);
 
         $bodyMetadata = new ReflectionProperty($body, 'meta');
-        $bodyMetadata->setAccessible(true);
 
         $bodyReadable = new ReflectionProperty($body, 'readable');
-        $bodyReadable->setAccessible(true);
 
         $bodyWritable = new ReflectionProperty($body, 'writable');
-        $bodyWritable->setAccessible(true);
 
         $bodySeekable = new ReflectionProperty($body, 'seekable');
-        $bodySeekable->setAccessible(true);
 
         $result = $body->detach();
 
@@ -146,7 +137,6 @@ class BodyTest extends PHPUnit_Framework_TestCase
         $this->stream = $this->resourceFactory();
         $body = new Body($this->stream);
         $bodyStream = new ReflectionProperty($body, 'stream');
-        $bodyStream->setAccessible(true);
         $bodyStream->setValue($body, null);
 
         $this->assertEquals('', (string)$body);
@@ -158,8 +148,8 @@ class BodyTest extends PHPUnit_Framework_TestCase
         $body = new Body($this->stream);
         $body->close();
 
-        $this->assertAttributeEquals(null, 'stream', $body);
-        //$this->assertFalse($body->isAttached()); #1269
+        $streamProp = new ReflectionProperty($body, 'stream');
+        $this->assertNull($streamProp->getValue($body));
     }
 
     public function testGetSizeAttached()
@@ -175,7 +165,6 @@ class BodyTest extends PHPUnit_Framework_TestCase
         $this->stream = $this->resourceFactory();
         $body = new Body($this->stream);
         $bodyStream = new ReflectionProperty($body, 'stream');
-        $bodyStream->setAccessible(true);
         $bodyStream->setValue($body, null);
 
         $this->assertNull($body->getSize());
@@ -195,10 +184,9 @@ class BodyTest extends PHPUnit_Framework_TestCase
         $this->stream = $this->resourceFactory();
         $body = new Body($this->stream);
         $bodyStream = new ReflectionProperty($body, 'stream');
-        $bodyStream->setAccessible(true);
         $bodyStream->setValue($body, null);
 
-        $this->setExpectedException('\RuntimeException');
+        $this->expectException('\RuntimeException');
         $body->tell();
     }
 
@@ -227,7 +215,6 @@ class BodyTest extends PHPUnit_Framework_TestCase
         $this->stream = $this->resourceFactory();
         $body = new Body($this->stream);
         $bodyStream = new ReflectionProperty($body, 'stream');
-        $bodyStream->setAccessible(true);
         $bodyStream->setValue($body, null);
 
         $this->assertTrue($body->eof());
@@ -319,7 +306,7 @@ class BodyTest extends PHPUnit_Framework_TestCase
         $body = new Body($this->stream);
         $body->detach();
 
-        $this->setExpectedException('\RuntimeException');
+        $this->expectException('\RuntimeException');
         $body->seek(10);
     }
 
@@ -339,7 +326,7 @@ class BodyTest extends PHPUnit_Framework_TestCase
         $body = new Body($this->stream);
         $body->detach();
 
-        $this->setExpectedException('\RuntimeException');
+        $this->expectException('\RuntimeException');
         $body->rewind();
     }
 
@@ -357,7 +344,7 @@ class BodyTest extends PHPUnit_Framework_TestCase
         $body = new Body($this->stream);
         $body->detach();
 
-        $this->setExpectedException('\RuntimeException');
+        $this->expectException('\RuntimeException');
         $body->read(10);
     }
 
@@ -379,7 +366,7 @@ class BodyTest extends PHPUnit_Framework_TestCase
         $body = new Body($this->stream);
         $body->detach();
 
-        $this->setExpectedException('\RuntimeException');
+        $this->expectException('\RuntimeException');
         $body->write('foo');
     }
 
@@ -398,7 +385,7 @@ class BodyTest extends PHPUnit_Framework_TestCase
         $body = new Body($this->stream);
         $body->detach();
 
-        $this->setExpectedException('\RuntimeException');
+        $this->expectException('\RuntimeException');
         $body->getContents();
     }
 }

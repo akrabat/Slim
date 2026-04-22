@@ -131,8 +131,8 @@ class Response extends Message implements ResponseInterface
      */
     public function __construct(
         $status = StatusCode::HTTP_OK,
-        HeadersInterface $headers = null,
-        StreamInterface $body = null
+        ?HeadersInterface $headers = null,
+        ?StreamInterface $body = null
     ) {
         $this->status = $this->filterStatus($status);
         $this->headers = $headers ? $headers : new Headers();
@@ -190,7 +190,7 @@ class Response extends Message implements ResponseInterface
     {
         $code = $this->filterStatus($code);
 
-        if (!is_string($reasonPhrase) && !method_exists($reasonPhrase, '__toString')) {
+        if (!is_string($reasonPhrase) && !$reasonPhrase instanceof \Stringable) {
             throw new InvalidArgumentException('ReasonPhrase must be a string');
         }
 

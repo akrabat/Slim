@@ -7,11 +7,11 @@
 
 namespace Slim\Tests\Handlers;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Slim\Handlers\AbstractHandler;
 
-class AbstractHandlerTest extends PHPUnit_Framework_TestCase
+class AbstractHandlerTest extends TestCase
 {
     public function testHalfValidContentType()
     {
@@ -30,11 +30,9 @@ class AbstractHandlerTest extends PHPUnit_Framework_TestCase
         $class = new ReflectionClass(AbstractHandler::class);
 
         $reflectionProperty = $class->getProperty('knownContentTypes');
-        $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue($abstractHandler, $newTypes);
 
         $method = $class->getMethod('determineContentType');
-        $method->setAccessible(true);
 
         $return = $method->invoke($abstractHandler, $req);
 
@@ -58,7 +56,6 @@ class AbstractHandlerTest extends PHPUnit_Framework_TestCase
         // provide access to the determineContentType() as it's a protected method
         $class = new ReflectionClass(AbstractHandler::class);
         $method = $class->getMethod('determineContentType');
-        $method->setAccessible(true);
 
         // use a mock object here as AbstractHandler cannot be directly instantiated
         $abstractHandler = $this->getMockForAbstractClass(AbstractHandler::class);

@@ -8,9 +8,7 @@
 namespace Slim\Tests\Http;
 
 use InvalidArgumentException;
-use PHPUnit_Framework_TestCase;
-use Prophecy\Argument;
-use Prophecy\Prophecy\MethodProphecy;
+use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\UriInterface;
 use ReflectionProperty;
 use RuntimeException;
@@ -22,7 +20,7 @@ use Slim\Http\RequestBody;
 use Slim\Http\UploadedFile;
 use Slim\Http\Uri;
 
-class RequestTest extends PHPUnit_Framework_TestCase
+class RequestTest extends TestCase
 {
     public function requestFactory($envData = [])
     {
@@ -141,23 +139,21 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory()->withMethod('PUT');
 
-        $this->assertAttributeEquals('PUT', 'method', $request);
-        $this->assertAttributeEquals('PUT', 'originalMethod', $request);
+        $this->assertSame('PUT', $request->getMethod());
+        $this->assertSame('PUT', $request->getOriginalMethod());
     }
 
     public function testWithAllAllowedCharactersMethod()
     {
         $request = $this->requestFactory()->withMethod("!#$%&'*+.^_`|~09AZ-");
 
-        $this->assertAttributeEquals("!#$%&'*+.^_`|~09AZ-", 'method', $request);
-        $this->assertAttributeEquals("!#$%&'*+.^_`|~09AZ-", 'originalMethod', $request);
+        $this->assertSame("!#$%&'*+.^_`|~09AZ-", $request->getMethod());
+        $this->assertSame("!#$%&'*+.^_`|~09AZ-", $request->getOriginalMethod());
     }
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
     public function testWithMethodInvalid()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $this->requestFactory()->withMethod('B@R');
     }
 
@@ -165,7 +161,7 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory()->withMethod(null);
 
-        $this->assertAttributeEquals(null, 'originalMethod', $request);
+        $this->assertNull($request->getOriginalMethod());
     }
 
     public function testCreateFromEnvironment()
@@ -288,11 +284,9 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('PUT', $request->getMethod());
     }
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
     public function testCreateRequestWithInvalidMethodString()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $uri = Uri::createFromString('https://example.com:443/foo/bar?abc=123');
         $headers = new Headers();
         $cookies = [];
@@ -301,11 +295,9 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $request = new Request('B@R', $uri, $headers, $cookies, $serverParams, $body);
     }
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
     public function testCreateRequestWithInvalidMethodOther()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $uri = Uri::createFromString('https://example.com:443/foo/bar?abc=123');
         $headers = new Headers();
         $cookies = [];
@@ -318,7 +310,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $prop = new ReflectionProperty($request, 'originalMethod');
-        $prop->setAccessible(true);
         $prop->setValue($request, 'GET');
 
         $this->assertTrue($request->isGet());
@@ -328,7 +319,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $prop = new ReflectionProperty($request, 'originalMethod');
-        $prop->setAccessible(true);
         $prop->setValue($request, 'POST');
 
         $this->assertTrue($request->isPost());
@@ -338,7 +328,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $prop = new ReflectionProperty($request, 'originalMethod');
-        $prop->setAccessible(true);
         $prop->setValue($request, 'PUT');
 
         $this->assertTrue($request->isPut());
@@ -348,7 +337,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $prop = new ReflectionProperty($request, 'originalMethod');
-        $prop->setAccessible(true);
         $prop->setValue($request, 'PATCH');
 
         $this->assertTrue($request->isPatch());
@@ -358,7 +346,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $prop = new ReflectionProperty($request, 'originalMethod');
-        $prop->setAccessible(true);
         $prop->setValue($request, 'DELETE');
 
         $this->assertTrue($request->isDelete());
@@ -368,7 +355,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $prop = new ReflectionProperty($request, 'originalMethod');
-        $prop->setAccessible(true);
         $prop->setValue($request, 'HEAD');
 
         $this->assertTrue($request->isHead());
@@ -378,7 +364,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $prop = new ReflectionProperty($request, 'originalMethod');
-        $prop->setAccessible(true);
         $prop->setValue($request, 'OPTIONS');
 
         $this->assertTrue($request->isOptions());
@@ -408,7 +393,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $prop = new ReflectionProperty($request, 'requestTarget');
-        $prop->setAccessible(true);
         $prop->setValue($request, '/foo/bar?abc=123');
 
         $this->assertEquals('/foo/bar?abc=123', $request->getRequestTarget());
@@ -418,7 +402,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $prop = new ReflectionProperty($request, 'uri');
-        $prop->setAccessible(true);
         $prop->setValue($request, null);
 
         $this->assertEquals('/', $request->getRequestTarget());
@@ -430,18 +413,17 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $path = 'foo';
         $query = 'bar=1';
 
-        $uriProphecy = $this->prophesize(Uri::class);
-        $uriGetBasePathProphecy = new MethodProphecy($uriProphecy, 'getBasePath', [Argument::any()]);
-        $uriGetBasePathProphecy->willReturn($basePath)->shouldBeCalledOnce();
-        $uriGetPathProphecy = new MethodProphecy($uriProphecy, 'getPath', [Argument::any()]);
-        $uriGetPathProphecy->willReturn($path);
-        $uriGetQueryProphecy = new MethodProphecy($uriProphecy, 'getQuery', [Argument::any()]);
-        $uriGetQueryProphecy->willReturn($query);
+        $uri = $this->getMockBuilder(Uri::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getBasePath', 'getPath', 'getQuery'])
+            ->getMock();
+        $uri->expects($this->once())->method('getBasePath')->willReturn($basePath);
+        $uri->method('getPath')->willReturn($path);
+        $uri->method('getQuery')->willReturn($query);
 
         $request = $this->requestFactory();
         $prop = new ReflectionProperty($request, 'uri');
-        $prop->setAccessible(true);
-        $prop->setValue($request, $uriProphecy->reveal());
+        $prop->setValue($request, $uri);
 
         $this->assertEquals($basePath . '/' . $path . '?' . $query, $request->getRequestTarget());
     }
@@ -449,12 +431,11 @@ class RequestTest extends PHPUnit_Framework_TestCase
     public function testGetRequestTargetWithNonSlimPsr7Uri()
     {
         // We still pass in a UriInterface, which isn't an instance of Slim URI
-        $uriProphecy = $this->prophesize(UriInterface::class);
+        $uri = $this->getMockBuilder(UriInterface::class)->getMock();
 
         $request = $this->requestFactory();
         $prop = new ReflectionProperty($request, 'uri');
-        $prop->setAccessible(true);
-        $prop->setValue($request, $uriProphecy->reveal());
+        $prop->setValue($request, $uri);
 
         $this->assertEquals('/', $request->getRequestTarget());
     }
@@ -463,14 +444,12 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $clone = $this->requestFactory()->withRequestTarget('/test?user=1');
 
-        $this->assertAttributeEquals('/test?user=1', 'requestTarget', $clone);
+        $this->assertSame('/test?user=1', $clone->getRequestTarget());
     }
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
     public function testWithRequestTargetThatHasSpaces()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $this->requestFactory()->withRequestTarget('/test/m ore/stuff?user=1');
     }
 
@@ -500,7 +479,7 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $request = new Request('GET', $uri1, $headers, $cookies, $serverParams, $body);
         $clone = $request->withUri($uri2);
 
-        $this->assertAttributeSame($uri2, 'uri', $clone);
+        $this->assertSame($uri2, $clone->getUri());
     }
 
     public function testWithUriPreservesHost()
@@ -546,7 +525,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
         ]);
         $request = $this->requestFactory();
         $headersProp = new ReflectionProperty($request, 'headers');
-        $headersProp->setAccessible(true);
         $headersProp->setValue($request, $headers);
 
         $this->assertEquals('application/json;charset=utf8', $request->getContentType());
@@ -566,7 +544,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
         ]);
         $request = $this->requestFactory();
         $headersProp = new ReflectionProperty($request, 'headers');
-        $headersProp->setAccessible(true);
         $headersProp->setValue($request, $headers);
 
         $this->assertEquals('application/json', $request->getMediaType());
@@ -586,7 +563,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
         ]);
         $request = $this->requestFactory();
         $headersProp = new ReflectionProperty($request, 'headers');
-        $headersProp->setAccessible(true);
         $headersProp->setValue($request, $headers);
 
         $this->assertEquals(['charset' => 'utf8', 'foo' => 'bar'], $request->getMediaTypeParams());
@@ -599,7 +575,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
         ]);
         $request = $this->requestFactory();
         $headersProp = new ReflectionProperty($request, 'headers');
-        $headersProp->setAccessible(true);
         $headersProp->setValue($request, $headers);
 
         $this->assertEquals([], $request->getMediaTypeParams());
@@ -619,7 +594,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
         ]);
         $request = $this->requestFactory();
         $headersProp = new ReflectionProperty($request, 'headers');
-        $headersProp->setAccessible(true);
         $headersProp->setValue($request, $headers);
 
         $this->assertEquals('utf8', $request->getContentCharset());
@@ -632,7 +606,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
         ]);
         $request = $this->requestFactory();
         $headersProp = new ReflectionProperty($request, 'headers');
-        $headersProp->setAccessible(true);
         $headersProp->setValue($request, $headers);
 
         $this->assertNull($request->getContentCharset());
@@ -652,7 +625,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
         ]);
         $request = $this->requestFactory();
         $headersProp = new ReflectionProperty($request, 'headers');
-        $headersProp->setAccessible(true);
         $headersProp->setValue($request, $headers);
 
         $this->assertEquals(150, $request->getContentLength());
@@ -706,7 +678,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $prop = new ReflectionProperty($request, 'queryParams');
-        $prop->setAccessible(true);
         $prop->setValue($request, ['foo' => 'bar']);
 
         $this->assertEquals(['foo' => 'bar'], $request->getQueryParams());
@@ -736,7 +707,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $prop = new ReflectionProperty($request, 'uri');
-        $prop->setAccessible(true);
         $prop->setValue($request, null);
 
         $this->assertEquals([], $request->getQueryParams());
@@ -795,7 +765,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $attrProp = new ReflectionProperty($request, 'attributes');
-        $attrProp->setAccessible(true);
         $attrProp->setValue($request, new Collection(['foo' => 'bar']));
 
         $this->assertEquals(['foo' => 'bar'], $request->getAttributes());
@@ -805,7 +774,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $attrProp = new ReflectionProperty($request, 'attributes');
-        $attrProp->setAccessible(true);
         $attrProp->setValue($request, new Collection(['foo' => 'bar']));
 
         $this->assertEquals('bar', $request->getAttribute('foo'));
@@ -817,7 +785,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $attrProp = new ReflectionProperty($request, 'attributes');
-        $attrProp->setAccessible(true);
         $attrProp->setValue($request, new Collection(['foo' => 'bar']));
         $clone = $request->withAttribute('test', '123');
 
@@ -828,7 +795,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $attrProp = new ReflectionProperty($request, 'attributes');
-        $attrProp->setAccessible(true);
         $attrProp->setValue($request, new Collection(['foo' => 'bar']));
         $clone = $request->withAttributes(['test' => '123']);
 
@@ -840,7 +806,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $attrProp = new ReflectionProperty($request, 'attributes');
-        $attrProp->setAccessible(true);
         $attrProp->setValue($request, new Collection(['foo' => 'bar']));
         $clone = $request->withoutAttribute('foo');
 
@@ -1025,7 +990,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $prop = new ReflectionProperty($request, 'bodyParsed');
-        $prop->setAccessible(true);
         $prop->setValue($request, ['foo' => 'bar']);
 
         $this->assertEquals(['foo' => 'bar'], $request->getParsedBody());
@@ -1035,7 +999,6 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->requestFactory();
         $prop = new ReflectionProperty($request, 'body');
-        $prop->setAccessible(true);
         $prop->setValue($request, null);
 
         $this->assertNull($request->getParsedBody());
@@ -1065,11 +1028,9 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(['abc' => '123'], $request->getParsedBody());
     }
 
-    /**
-     * @expectedException RuntimeException
-     */
     public function testGetParsedBodyAsArray()
     {
+        $this->expectException(\RuntimeException::class);
         $uri = Uri::createFromString('https://example.com:443/foo/bar?abc=123');
         $headers = new Headers([
             'Content-Type' => 'application/json;charset=utf8',
@@ -1147,19 +1108,15 @@ class RequestTest extends PHPUnit_Framework_TestCase
         $this->assertNull($request->getParsedBody());
     }
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
     public function testWithParsedBodyInvalid()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $this->requestFactory()->withParsedBody(2);
     }
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
     public function testWithParsedBodyInvalidFalseValue()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $this->requestFactory()->withParsedBody(false);
     }
 

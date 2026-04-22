@@ -134,7 +134,7 @@ class Uri implements UriInterface
      */
     public static function createFromString($uri)
     {
-        if (!is_string($uri) && !method_exists($uri, '__toString')) {
+        if (!is_string($uri) && !$uri instanceof \Stringable) {
             throw new InvalidArgumentException('Uri must be a string');
         }
 
@@ -170,11 +170,11 @@ class Uri implements UriInterface
 
         // Authority: Host and Port
         if ($env->has('HTTP_HOST')) {
-            $host = $env->get('HTTP_HOST');
+            $host = (string)$env->get('HTTP_HOST');
             // set a port default
             $port = null;
         } else {
-            $host = $env->get('SERVER_NAME');
+            $host = (string)$env->get('SERVER_NAME');
             // set a port default
             $port = (int)$env->get('SERVER_PORT', 80);
         }
@@ -294,7 +294,7 @@ class Uri implements UriInterface
             'http' => true,
         ];
 
-        if (!is_string($scheme) && !method_exists($scheme, '__toString')) {
+        if (!is_string($scheme) && !$scheme instanceof \Stringable) {
             throw new InvalidArgumentException('Uri scheme must be a string');
         }
 
@@ -694,7 +694,7 @@ class Uri implements UriInterface
      */
     public function withQuery($query)
     {
-        if (!is_string($query) && !method_exists($query, '__toString')) {
+        if (!is_string($query) && !$query instanceof \Stringable) {
             throw new InvalidArgumentException('Uri query must be a string');
         }
         $query = ltrim((string)$query, '?');
@@ -718,7 +718,7 @@ class Uri implements UriInterface
             function ($match) {
                 return rawurlencode($match[0]);
             },
-            $query
+            (string)$query
         );
     }
 
@@ -761,7 +761,7 @@ class Uri implements UriInterface
      */
     public function withFragment($fragment)
     {
-        if (!is_string($fragment) && !method_exists($fragment, '__toString')) {
+        if (!is_string($fragment) && !$fragment instanceof \Stringable) {
             throw new InvalidArgumentException('Uri fragment must be a string');
         }
         $fragment = ltrim((string)$fragment, '#');

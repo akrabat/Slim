@@ -7,21 +7,20 @@
 
 namespace Slim\Tests;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Slim\CallableResolver;
 use Slim\Container;
 use Slim\Tests\Mocks\CallableTest;
 use Slim\Tests\Mocks\InvokableTest;
 
-class CallableResolverTest extends PHPUnit_Framework_TestCase
+class CallableResolverTest extends TestCase
 {
     /**
      * @var Container
      */
     private $container;
 
-    public function setUp()
-    {
+    public function setUp(): void    {
         CallableTest::$CalledCount = 0;
         InvokableTest::$CalledCount = 0;
         $this->container = new Container();
@@ -111,35 +110,35 @@ class CallableResolverTest extends PHPUnit_Framework_TestCase
     {
         $this->container['callable_service'] = new CallableTest();
         $resolver = new CallableResolver($this->container);
-        $this->setExpectedException('\RuntimeException');
+        $this->expectException('\RuntimeException');
         $resolver->resolve('callable_service:noFound');
     }
 
     public function testFunctionNotFoundThrowException()
     {
         $resolver = new CallableResolver($this->container);
-        $this->setExpectedException('\RuntimeException');
+        $this->expectException('\RuntimeException');
         $resolver->resolve('noFound');
     }
 
     public function testClassNotFoundThrowException()
     {
         $resolver = new CallableResolver($this->container);
-        $this->setExpectedException('\RuntimeException', 'Callable Unknown does not exist');
+        $this->expectException('\RuntimeException'); $this->expectExceptionMessage('Callable Unknown does not exist');
         $resolver->resolve('Unknown:notFound');
     }
 
     public function testCallableClassNotFoundThrowException()
     {
         $resolver = new CallableResolver($this->container);
-        $this->setExpectedException('\RuntimeException', 'is not resolvable');
+        $this->expectException('\RuntimeException'); $this->expectExceptionMessage('is not resolvable');
         $resolver->resolve(['Unknown', 'notFound']);
     }
 
     public function testCallableInvalidTypeThrowException()
     {
         $resolver = new CallableResolver($this->container);
-        $this->setExpectedException('\RuntimeException', 'is not resolvable');
+        $this->expectException('\RuntimeException'); $this->expectExceptionMessage('is not resolvable');
         $resolver->resolve(__LINE__);
     }
 }
