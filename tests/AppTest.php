@@ -46,11 +46,13 @@ function header($value, $replace = true)
 
 class AppTest extends TestCase
 {
-    public function setUp(): void    {
+    public function setUp(): void
+    {
         HeaderStack::reset();
     }
 
-    public function tearDown(): void    {
+    public function tearDown(): void
+    {
         HeaderStack::reset();
     }
 
@@ -316,8 +318,8 @@ class AppTest extends TestCase
     public function testGroupSegmentWithEmptyRoute()
     {
         $app = new App();
-        $app->group('/foo', function () {
-            $this->get('', function ($req, $res) {
+        $app->group('/foo', function ($app) {
+            $app->get('', function ($req, $res) {
                 // Do something
             });
         });
@@ -1310,7 +1312,7 @@ class AppTest extends TestCase
 
         $app = new App();
         $container = $app->getContainer();
-        $container['foo'] = function () use ($mock, $res) {
+        $container['foo'] = function () use ($mock) {
             return $mock;
         };
 
@@ -1342,7 +1344,7 @@ class AppTest extends TestCase
 
         $app = new App();
         $container = $app->getContainer();
-        $container['foo'] = function () use ($mock, $res) {
+        $container['foo'] = function () use ($mock) {
             return $mock;
         };
 
@@ -1358,15 +1360,6 @@ class AppTest extends TestCase
     public function testInvokeFunctionName()
     {
         $app = new App();
-
-        // @codingStandardsIgnoreStart
-        function handle($req, $res)
-        {
-            $res->write('foo');
-
-            return $res;
-        }
-        // @codingStandardsIgnoreEnd
 
         $app->get('/foo', __NAMESPACE__ . '\handle');
 
@@ -1917,7 +1910,7 @@ class AppTest extends TestCase
         $app->getContainer()['response'] = $res;
 
         $mw = function ($req, $res, $next) {
-            dumpFonction();
+            call_user_func('dumpFonction');
         };
 
         $app->add($mw);
@@ -2283,7 +2276,7 @@ class AppTest extends TestCase
 
         $app = new App();
         $container = $app->getContainer();
-        $container['foo'] = function () use ($mock, $res) {
+        $container['foo'] = function () use ($mock) {
             return $mock;
         };
 
@@ -2587,3 +2580,12 @@ end;
         }
     }
 }
+
+// @codingStandardsIgnoreStart
+function handle($req, $res)
+{
+    $res->write('foo');
+
+    return $res;
+}
+// @codingStandardsIgnoreEnd

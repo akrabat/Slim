@@ -19,17 +19,19 @@ use Slim\Http\Uri;
 
 class UploadedFilesTest extends TestCase
 {
-    static private $filename = './phpUxcOty';
+    private static $filename = './phpUxcOty';
 
-    static private $tmpFiles = ['./phpUxcOty'];
+    private static $tmpFiles = ['./phpUxcOty'];
 
-    public static function setUpBeforeClass(): void    {
+    public static function setUpBeforeClass(): void
+    {
         $fh = fopen(self::$filename, "w");
         fwrite($fh, "12345678");
         fclose($fh);
     }
 
-    public static function tearDownAfterClass(): void    {
+    public static function tearDownAfterClass(): void
+    {
         foreach (self::$tmpFiles as $filename) {
             if (file_exists($filename)) {
                 unlink($filename);

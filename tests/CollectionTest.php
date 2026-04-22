@@ -23,7 +23,8 @@ class CollectionTest extends TestCase
      */
     protected $property;
 
-    public function setUp(): void    {
+    public function setUp(): void
+    {
         $this->bag = new Collection();
         $this->property = new ReflectionProperty($this->bag, 'data');
     }

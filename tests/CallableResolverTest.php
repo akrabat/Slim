@@ -20,7 +20,8 @@ class CallableResolverTest extends TestCase
      */
     private $container;
 
-    public function setUp(): void    {
+    public function setUp(): void
+    {
         CallableTest::$CalledCount = 0;
         InvokableTest::$CalledCount = 0;
         $this->container = new Container();
@@ -40,14 +41,6 @@ class CallableResolverTest extends TestCase
 
     public function testFunctionName()
     {
-        // @codingStandardsIgnoreStart
-        function testCallable()
-        {
-            static $called_count = 0;
-            return $called_count++;
-        };
-        // @codingStandardsIgnoreEnd
-
         $resolver = new CallableResolver($this->container);
         $callable = $resolver->resolve(__NAMESPACE__ . '\testCallable');
         $callable();
@@ -124,21 +117,32 @@ class CallableResolverTest extends TestCase
     public function testClassNotFoundThrowException()
     {
         $resolver = new CallableResolver($this->container);
-        $this->expectException('\RuntimeException'); $this->expectExceptionMessage('Callable Unknown does not exist');
+        $this->expectException('\RuntimeException');
+        $this->expectExceptionMessage('Callable Unknown does not exist');
         $resolver->resolve('Unknown:notFound');
     }
 
     public function testCallableClassNotFoundThrowException()
     {
         $resolver = new CallableResolver($this->container);
-        $this->expectException('\RuntimeException'); $this->expectExceptionMessage('is not resolvable');
+        $this->expectException('\RuntimeException');
+        $this->expectExceptionMessage('is not resolvable');
         $resolver->resolve(['Unknown', 'notFound']);
     }
 
     public function testCallableInvalidTypeThrowException()
     {
         $resolver = new CallableResolver($this->container);
-        $this->expectException('\RuntimeException'); $this->expectExceptionMessage('is not resolvable');
+        $this->expectException('\RuntimeException');
+        $this->expectExceptionMessage('is not resolvable');
         $resolver->resolve(__LINE__);
     }
 }
+
+// @codingStandardsIgnoreStart
+function testCallable()
+{
+    static $called_count = 0;
+    return $called_count++;
+}
+// @codingStandardsIgnoreEnd

@@ -16,7 +16,8 @@ class EnvironmentTest extends TestCase
      * Server settings for the default HTTP request
      * used by this script's tests.
      */
-    public function setUp(): void    {
+    public function setUp(): void
+    {
         $_SERVER['DOCUMENT_ROOT'] = '/var/www';
         $_SERVER['SCRIPT_NAME'] = '/foo/index.php';
         $_SERVER['REQUEST_URI'] = '/foo/index.php/bar/xyz';

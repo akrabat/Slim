@@ -25,6 +25,8 @@ use Slim\Interfaces\Http\HeadersInterface;
  * @link https://github.com/php-fig/http-message/blob/master/src/MessageInterface.php
  * @link https://github.com/php-fig/http-message/blob/master/src/RequestInterface.php
  * @link https://github.com/php-fig/http-message/blob/master/src/ServerRequestInterface.php
+ *
+ * @phpstan-consistent-constructor
  */
 class Request extends Message implements ServerRequestInterface
 {

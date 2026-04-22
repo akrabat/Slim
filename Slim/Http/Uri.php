@@ -29,6 +29,8 @@ use Psr\Http\Message\UriInterface;
  * server parameters.
  *
  * @link http://tools.ietf.org/html/rfc3986 (the URI specification)
+ *
+ * @phpstan-consistent-constructor
  */
 class Uri implements UriInterface
 {

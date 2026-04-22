@@ -14,11 +14,13 @@ use Slim\Tests\Assets\HeaderStack;
 
 class NonBufferedBodyTest extends TestCase
 {
-    protected function setUp(): void    {
+    protected function setUp(): void
+    {
         HeaderStack::reset();
     }
 
-    protected function tearDown(): void    {
+    protected function tearDown(): void
+    {
         HeaderStack::reset();
     }
 

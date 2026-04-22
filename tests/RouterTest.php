@@ -26,11 +26,13 @@ class RouterTest extends TestCase
      */
     protected $cacheFile;
 
-    public function setUp(): void    {
+    public function setUp(): void
+    {
         $this->router = new Router;
     }
 
-    public function tearDown(): void    {
+    public function tearDown(): void
+    {
         if ($this->cacheFile && file_exists($this->cacheFile)) {
             unlink($this->cacheFile);
         }

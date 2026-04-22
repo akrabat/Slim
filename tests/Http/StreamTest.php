@@ -23,7 +23,8 @@ class StreamTest extends TestCase
      */
     private $pipeStream;
 
-    public function tearDown(): void    {
+    public function tearDown(): void
+    {
         if ($this->pipeFh != null) {
             stream_get_contents($this->pipeFh); // prevent broken pipe error message
         }

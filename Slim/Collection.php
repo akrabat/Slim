@@ -16,6 +16,8 @@ use Slim\Interfaces\CollectionInterface;
  * This class provides a common interface used by many other
  * classes in a Slim application that manage "collections"
  * of data that must be inspected and/or manipulated
+ *
+ * @phpstan-consistent-constructor
  */
 class Collection implements CollectionInterface
 {
