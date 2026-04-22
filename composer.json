@@ -59,6 +59,12 @@
         "test": [
             "phpunit",
             "phpcs"
+        ],
+        "test:coverage": [
+            "phpunit --coverage-clover clover.xml"
+        ],
+        "analyse": [
+            "phpstan analyse --memory-limit=512M"
         ]
     }
 }

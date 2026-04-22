@@ -8,6 +8,8 @@
 namespace Slim\Tests\Http;
 
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
+use ReflectionProperty;
 use RuntimeException;
 use Slim\Http\Stream;
 
@@ -113,6 +115,22 @@ class StreamTest extends TestCase
 
         $contents = trim($this->pipeStream->getContents());
         $this->assertSame('12', $contents);
+    }
+
+    public function testAttachDetachesPreviouslyAttachedStream()
+    {
+        $firstFh = fopen('php://temp', 'r+');
+        $stream = new Stream($firstFh);
+
+        $secondFh = fopen('php://temp', 'r+');
+        $attach = new ReflectionMethod(Stream::class, 'attach');
+        $attach->invoke($stream, $secondFh);
+
+        $prop = new ReflectionProperty($stream, 'stream');
+        $this->assertSame($secondFh, $prop->getValue($stream));
+
+        fclose($firstFh);
+        fclose($secondFh);
     }
 
     /**

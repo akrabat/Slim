@@ -57,6 +57,21 @@ class NotFoundTest extends TestCase
         $errorMock->__invoke($req, new Response(), ['POST']);
     }
 
+    public function testNotFoundForOptionsRequest()
+    {
+        $notFound = new NotFound();
+
+        $req = $this->getMockBuilder(Request::class)->disableOriginalConstructor()->getMock();
+        $req->method('getMethod')->willReturn('OPTIONS');
+
+        /** @var Response $res */
+        $res = $notFound->__invoke($req, new Response(), []);
+
+        $this->assertSame(404, $res->getStatusCode());
+        $this->assertSame('text/plain', $res->getHeaderLine('Content-Type'));
+        $this->assertSame('Not found', (string)$res->getBody());
+    }
+
     /**
      * @param string $method
      *

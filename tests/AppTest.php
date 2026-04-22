@@ -1886,9 +1886,6 @@ class AppTest extends TestCase
         $this->assertDoesNotMatchRegularExpression('/.*middleware exception.*/', (string)$resOut);
     }
 
-    /**
-     * @requires PHP 7.0
-     */
     public function testExceptionPhpErrorHandlerDoesNotDisplayErrorDetails()
     {
         $app = new App();
@@ -1985,9 +1982,6 @@ class AppTest extends TestCase
         $this->assertEquals("Failed", $res->getBody()->getContents());
     }
 
-    /**
-     * @requires PHP 7.0
-     */
     public function testRunThrowable()
     {
         $app = $this->appFactory();
@@ -2066,6 +2060,51 @@ class AppTest extends TestCase
             throw new MethodNotAllowedException($req, $res, ['POST']);
         });
         $res = $app->run(true);
+    }
+
+    public function testRunWithInvalidMethodOverrideReturnsMethodNotAllowed()
+    {
+        $app = new App(['settings' => ['determineRouteBeforeAppMiddleware' => true]]);
+        $app->get('/foo', function ($req, $res) {
+            return $res;
+        });
+
+        $env = Environment::mock([
+            'SCRIPT_NAME' => '/index.php',
+            'REQUEST_URI' => '/foo',
+            'REQUEST_METHOD' => 'POST',
+            'HTTP_X_HTTP_METHOD_OVERRIDE' => 'B@R',
+        ]);
+        $uri = Uri::createFromEnvironment($env);
+        $headers = Headers::createFromEnvironment($env);
+        $body = new RequestBody();
+        $req = new Request('POST', $uri, $headers, [], $env->all(), $body);
+        $app->getContainer()['request'] = $req;
+
+        $res = $app->run(true);
+
+        $this->assertSame(405, $res->getStatusCode());
+    }
+
+    public function testRunWithInvalidMethodOverrideOnUnknownRouteReturnsNotFound()
+    {
+        $app = new App(['settings' => ['determineRouteBeforeAppMiddleware' => true]]);
+
+        $env = Environment::mock([
+            'SCRIPT_NAME' => '/index.php',
+            'REQUEST_URI' => '/unknown',
+            'REQUEST_METHOD' => 'POST',
+            'HTTP_X_HTTP_METHOD_OVERRIDE' => 'B@R',
+        ]);
+        $uri = Uri::createFromEnvironment($env);
+        $headers = Headers::createFromEnvironment($env);
+        $body = new RequestBody();
+        $req = new Request('POST', $uri, $headers, [], $env->all(), $body);
+        $app->getContainer()['request'] = $req;
+
+        $res = $app->run(true);
+
+        $this->assertSame(404, $res->getStatusCode());
     }
 
     public function testAppRunWithDetermineRouteBeforeAppMiddleware()
@@ -2344,12 +2383,9 @@ class AppTest extends TestCase
 
     public function testHandlePhpError()
     {
-        $this->skipIfPhp70();
         $method = new ReflectionMethod('Slim\App', 'handlePhpError');
 
-        $throwable = $this->getMockBuilder('\Throwable')
-            ->onlyMethods(['getCode', 'getMessage', 'getFile', 'getLine', 'getTraceAsString', 'getPrevious'])
-            ->getMock();
+        $throwable = new Exception('Oops');
         $req = $this->getMockBuilder('Slim\Http\Request')->disableOriginalConstructor()->getMock();
         $res = new Response();
 
@@ -2571,13 +2607,6 @@ end;
 
         $this->assertInstanceOf('\Psr\Http\Message\ResponseInterface', $resOut2);
         $this->assertEquals('3', (string)$resOut2->getBody());
-    }
-
-    protected function skipIfPhp70()
-    {
-        if (version_compare(PHP_VERSION, '7.0', '>=')) {
-            $this->markTestSkipped();
-        }
     }
 }
 
