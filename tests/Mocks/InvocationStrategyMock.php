@@ -11,7 +11,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Interfaces\InvocationStrategyInterface;
 
-class InvocationStrategyTest implements InvocationStrategyInterface
+class InvocationStrategyMock implements InvocationStrategyInterface
 {
     public static $LastCalledFor = null;
 

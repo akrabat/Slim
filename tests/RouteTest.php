@@ -18,8 +18,8 @@ use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Http\Uri;
 use Slim\Route;
-use Slim\Tests\Mocks\CallableTest;
-use Slim\Tests\Mocks\InvocationStrategyTest;
+use Slim\Tests\Mocks\CallableMock;
+use Slim\Tests\Mocks\InvocationStrategyMock;
 use Slim\Tests\Mocks\MiddlewareStub;
 
 class RouteTest extends TestCase
@@ -237,7 +237,7 @@ class RouteTest extends TestCase
     {
 
         $container = new Container();
-        $container['CallableTest'] = new CallableTest;
+        $container['CallableTest'] = new CallableMock;
 
         $deferred = new DeferredCallable('CallableTest:toCall', $container);
 
@@ -248,12 +248,12 @@ class RouteTest extends TestCase
         $body = new Body(fopen('php://temp', 'r+'));
         $request = new Request('GET', $uri, new Headers(), [], Environment::mock()->all(), $body);
 
-        CallableTest::$CalledCount = 0;
+        CallableMock::$CalledCount = 0;
 
         $result = $route->callMiddlewareStack($request, new Response);
 
         $this->assertInstanceOf('Slim\Http\Response', $result);
-        $this->assertEquals(1, CallableTest::$CalledCount);
+        $this->assertEquals(1, CallableMock::$CalledCount);
     }
 
     public function testInvokeWhenReturningAResponse()
@@ -348,9 +348,9 @@ class RouteTest extends TestCase
     public function testInvokeDeferredCallable()
     {
         $container = new Container();
-        $container['CallableTest'] = new CallableTest;
+        $container['CallableTest'] = new CallableMock;
         $container['foundHandler'] = function () {
-            return new InvocationStrategyTest();
+            return new InvocationStrategyMock();
         };
 
         $route = new Route(['GET'], '/', 'CallableTest:toCall');
@@ -363,7 +363,7 @@ class RouteTest extends TestCase
         $result = $route->callMiddlewareStack($request, new Response);
 
         $this->assertInstanceOf('Slim\Http\Response', $result);
-        $this->assertEquals([$container['CallableTest'], 'toCall'], InvocationStrategyTest::$LastCalledFor);
+        $this->assertEquals([$container['CallableTest'], 'toCall'], InvocationStrategyMock::$LastCalledFor);
     }
 
     public function testPatternCanBeChanged()
@@ -376,9 +376,9 @@ class RouteTest extends TestCase
     public function testChangingCallable()
     {
         $container = new Container();
-        $container['CallableTest2'] = new CallableTest;
+        $container['CallableTest2'] = new CallableMock;
         $container['foundHandler'] = function () {
-            return new InvocationStrategyTest();
+            return new InvocationStrategyMock();
         };
 
         $route = new Route(['GET'], '/', 'CallableTest:toCall'); //Note that this doesn't actually exist
@@ -393,6 +393,6 @@ class RouteTest extends TestCase
         $result = $route->callMiddlewareStack($request, new Response);
 
         $this->assertInstanceOf('Slim\Http\Response', $result);
-        $this->assertEquals([$container['CallableTest2'], 'toCall'], InvocationStrategyTest::$LastCalledFor);
+        $this->assertEquals([$container['CallableTest2'], 'toCall'], InvocationStrategyMock::$LastCalledFor);
     }
 }

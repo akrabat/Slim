@@ -10,8 +10,8 @@ namespace Slim\Tests;
 use PHPUnit\Framework\TestCase;
 use Slim\CallableResolver;
 use Slim\Container;
-use Slim\Tests\Mocks\CallableTest;
-use Slim\Tests\Mocks\InvokableTest;
+use Slim\Tests\Mocks\CallableMock;
+use Slim\Tests\Mocks\InvokableMock;
 
 class CallableResolverTest extends TestCase
 {
@@ -22,8 +22,8 @@ class CallableResolverTest extends TestCase
 
     public function setUp(): void
     {
-        CallableTest::$CalledCount = 0;
-        InvokableTest::$CalledCount = 0;
+        CallableMock::$CalledCount = 0;
+        InvokableMock::$CalledCount = 0;
         $this->container = new Container();
     }
 
@@ -49,59 +49,59 @@ class CallableResolverTest extends TestCase
 
     public function testObjMethodArray()
     {
-        $obj = new CallableTest();
+        $obj = new CallableMock();
         $resolver = new CallableResolver($this->container);
         $callable = $resolver->resolve([$obj, 'toCall']);
         $callable();
-        $this->assertEquals(1, CallableTest::$CalledCount);
+        $this->assertEquals(1, CallableMock::$CalledCount);
     }
 
     public function testSlimCallable()
     {
         $resolver = new CallableResolver($this->container);
-        $callable = $resolver->resolve('Slim\Tests\Mocks\CallableTest:toCall');
+        $callable = $resolver->resolve('Slim\Tests\Mocks\CallableMock:toCall');
         $callable();
-        $this->assertEquals(1, CallableTest::$CalledCount);
+        $this->assertEquals(1, CallableMock::$CalledCount);
     }
 
     public function testSlimCallableContainer()
     {
         $resolver = new CallableResolver($this->container);
-        $resolver->resolve('Slim\Tests\Mocks\CallableTest:toCall');
-        $this->assertEquals($this->container, CallableTest::$CalledContainer);
+        $resolver->resolve('Slim\Tests\Mocks\CallableMock:toCall');
+        $this->assertEquals($this->container, CallableMock::$CalledContainer);
     }
 
     public function testContainer()
     {
-        $this->container['callable_service'] = new CallableTest();
+        $this->container['callable_service'] = new CallableMock();
         $resolver = new CallableResolver($this->container);
         $callable = $resolver->resolve('callable_service:toCall');
         $callable();
-        $this->assertEquals(1, CallableTest::$CalledCount);
+        $this->assertEquals(1, CallableMock::$CalledCount);
     }
 
     public function testResolutionToAnInvokableClassInContainer()
     {
         $this->container['an_invokable'] = function ($c) {
-            return new InvokableTest();
+            return new InvokableMock();
         };
         $resolver = new CallableResolver($this->container);
         $callable = $resolver->resolve('an_invokable');
         $callable();
-        $this->assertEquals(1, InvokableTest::$CalledCount);
+        $this->assertEquals(1, InvokableMock::$CalledCount);
     }
 
     public function testResolutionToAnInvokableClass()
     {
         $resolver = new CallableResolver($this->container);
-        $callable = $resolver->resolve('Slim\Tests\Mocks\InvokableTest');
+        $callable = $resolver->resolve('Slim\Tests\Mocks\InvokableMock');
         $callable();
-        $this->assertEquals(1, InvokableTest::$CalledCount);
+        $this->assertEquals(1, InvokableMock::$CalledCount);
     }
 
     public function testMethodNotFoundThrowException()
     {
-        $this->container['callable_service'] = new CallableTest();
+        $this->container['callable_service'] = new CallableMock();
         $resolver = new CallableResolver($this->container);
         $this->expectException('\RuntimeException');
         $resolver->resolve('callable_service:noFound');

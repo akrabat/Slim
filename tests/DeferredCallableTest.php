@@ -10,19 +10,19 @@ namespace Slim\Tests;
 use PHPUnit\Framework\TestCase;
 use Slim\Container;
 use Slim\DeferredCallable;
-use Slim\Tests\Mocks\CallableTest;
+use Slim\Tests\Mocks\CallableMock;
 
 class DeferredCallableTest extends TestCase
 {
     public function testItResolvesCallable()
     {
         $container = new Container();
-        $container['CallableTest'] = new CallableTest;
+        $container['CallableTest'] = new CallableMock;
 
         $deferred = new DeferredCallable('CallableTest:toCall', $container);
         $deferred();
 
-        $this->assertEquals(1, CallableTest::$CalledCount);
+        $this->assertEquals(1, CallableMock::$CalledCount);
     }
 
     public function testItBindsClosuresToContainer()

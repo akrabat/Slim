@@ -7,11 +7,18 @@
 
 namespace Slim\Tests\Mocks;
 
-class InvokableTest
+class CallableMock
 {
     public static $CalledCount = 0;
 
-    public function __invoke()
+    public static $CalledContainer = null;
+
+    public function __construct($container = null)
+    {
+        static::$CalledContainer = $container;
+    }
+
+    public function toCall()
     {
         return static::$CalledCount++;
     }
