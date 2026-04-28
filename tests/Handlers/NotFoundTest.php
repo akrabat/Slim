@@ -7,16 +7,16 @@
 
 namespace Slim\Tests\Handlers;
 
-use PHPUnit_Framework_MockObject_MockObject;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Slim\Handlers\NotFound;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Http\Uri;
 
-class NotFoundTest extends PHPUnit_Framework_TestCase
+class NotFoundTest extends TestCase
 {
-    public function notFoundProvider()
+    public static function notFoundProvider()
     {
         return [
             ['application/json', 'application/json', '{'],
@@ -47,20 +47,35 @@ class NotFoundTest extends PHPUnit_Framework_TestCase
 
     public function testNotFoundContentType()
     {
-        $errorMock = $this->getMockBuilder(NotFound::class)->setMethods(['determineContentType'])->getMock();
+        $errorMock = $this->getMockBuilder(NotFound::class)->onlyMethods(['determineContentType'])->getMock();
         $errorMock->method('determineContentType')
             ->will($this->returnValue('unknown/type'));
 
         $req = $this->getMockBuilder('Slim\Http\Request')->disableOriginalConstructor()->getMock();
 
-        $this->setExpectedException('\UnexpectedValueException');
+        $this->expectException('\UnexpectedValueException');
         $errorMock->__invoke($req, new Response(), ['POST']);
+    }
+
+    public function testNotFoundForOptionsRequest()
+    {
+        $notFound = new NotFound();
+
+        $req = $this->getMockBuilder(Request::class)->disableOriginalConstructor()->getMock();
+        $req->method('getMethod')->willReturn('OPTIONS');
+
+        /** @var Response $res */
+        $res = $notFound->__invoke($req, new Response(), []);
+
+        $this->assertSame(404, $res->getStatusCode());
+        $this->assertSame('text/plain', $res->getHeaderLine('Content-Type'));
+        $this->assertSame('Not found', (string)$res->getBody());
     }
 
     /**
      * @param string $method
      *
-     * @return PHPUnit_Framework_MockObject_MockObject|Request
+     * @return PHPUnit\Framework\MockObject\MockObject|Request
      */
     protected function getRequest($method, $contentType = 'text/html')
     {

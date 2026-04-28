@@ -17,6 +17,8 @@ use RuntimeException;
  *
  * @link https://github.com/php-fig/http-message/blob/master/src/UploadedFileInterface.php
  * @link https://github.com/php-fig/http-message/blob/master/src/StreamInterface.php
+ *
+ * @phpstan-consistent-constructor
  */
 class UploadedFile implements UploadedFileInterface
 {

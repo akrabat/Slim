@@ -8,7 +8,7 @@
 namespace Slim\Tests;
 
 use Exception;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Slim\Container;
 use Slim\DeferredCallable;
 use Slim\Http\Body;
@@ -18,11 +18,11 @@ use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Http\Uri;
 use Slim\Route;
-use Slim\Tests\Mocks\CallableTest;
-use Slim\Tests\Mocks\InvocationStrategyTest;
+use Slim\Tests\Mocks\CallableMock;
+use Slim\Tests\Mocks\InvocationStrategyMock;
 use Slim\Tests\Mocks\MiddlewareStub;
 
-class RouteTest extends PHPUnit_Framework_TestCase
+class RouteTest extends TestCase
 {
     public function routeFactory()
     {
@@ -44,9 +44,9 @@ class RouteTest extends PHPUnit_Framework_TestCase
         };
         $route = new Route($methods, $pattern, $callable);
 
-        $this->assertAttributeEquals($methods, 'methods', $route);
-        $this->assertAttributeEquals($pattern, 'pattern', $route);
-        $this->assertAttributeEquals($callable, 'callable', $route);
+        $this->assertEquals($methods, $route->getMethods());
+        $this->assertEquals($pattern, $route->getPattern());
+        $this->assertEquals($callable, $route->getCallable());
     }
 
     public function testGetMethodsReturnsArrayWhenContructedWithString()
@@ -72,7 +72,7 @@ class RouteTest extends PHPUnit_Framework_TestCase
     {
         $callable = $this->routeFactory()->getCallable();
 
-        $this->assertInternalType('callable', $callable);
+        $this->assertIsCallable($callable);
     }
 
     public function testArgumentSetting()
@@ -176,7 +176,7 @@ class RouteTest extends PHPUnit_Framework_TestCase
     {
         $route = $this->routeFactory();
 
-        $this->setExpectedException('InvalidArgumentException');
+        $this->expectException('InvalidArgumentException');
 
         $route->setName(false);
     }
@@ -201,7 +201,7 @@ class RouteTest extends PHPUnit_Framework_TestCase
     {
         $route = $this->routeFactory();
 
-        $this->setExpectedException('InvalidArgumentException');
+        $this->expectException('InvalidArgumentException');
 
         $route->setOutputBuffering('invalid');
     }
@@ -237,7 +237,7 @@ class RouteTest extends PHPUnit_Framework_TestCase
     {
 
         $container = new Container();
-        $container['CallableTest'] = new CallableTest;
+        $container['CallableTest'] = new CallableMock;
 
         $deferred = new DeferredCallable('CallableTest:toCall', $container);
 
@@ -248,12 +248,12 @@ class RouteTest extends PHPUnit_Framework_TestCase
         $body = new Body(fopen('php://temp', 'r+'));
         $request = new Request('GET', $uri, new Headers(), [], Environment::mock()->all(), $body);
 
-        CallableTest::$CalledCount = 0;
+        CallableMock::$CalledCount = 0;
 
         $result = $route->callMiddlewareStack($request, new Response);
 
         $this->assertInstanceOf('Slim\Http\Response', $result);
-        $this->assertEquals(1, CallableTest::$CalledCount);
+        $this->assertEquals(1, CallableMock::$CalledCount);
     }
 
     public function testInvokeWhenReturningAResponse()
@@ -298,11 +298,9 @@ class RouteTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('foo', (string)$response->getBody());
     }
 
-    /**
-     * @expectedException Exception
-     */
     public function testInvokeWithException()
     {
+        $this->expectException(\Exception::class);
         $callable = function ($req, $res, $args) {
             throw new Exception();
         };
@@ -350,9 +348,9 @@ class RouteTest extends PHPUnit_Framework_TestCase
     public function testInvokeDeferredCallable()
     {
         $container = new Container();
-        $container['CallableTest'] = new CallableTest;
+        $container['CallableTest'] = new CallableMock;
         $container['foundHandler'] = function () {
-            return new InvocationStrategyTest();
+            return new InvocationStrategyMock();
         };
 
         $route = new Route(['GET'], '/', 'CallableTest:toCall');
@@ -365,7 +363,7 @@ class RouteTest extends PHPUnit_Framework_TestCase
         $result = $route->callMiddlewareStack($request, new Response);
 
         $this->assertInstanceOf('Slim\Http\Response', $result);
-        $this->assertEquals([$container['CallableTest'], 'toCall'], InvocationStrategyTest::$LastCalledFor);
+        $this->assertEquals([$container['CallableTest'], 'toCall'], InvocationStrategyMock::$LastCalledFor);
     }
 
     public function testPatternCanBeChanged()
@@ -378,9 +376,9 @@ class RouteTest extends PHPUnit_Framework_TestCase
     public function testChangingCallable()
     {
         $container = new Container();
-        $container['CallableTest2'] = new CallableTest;
+        $container['CallableTest2'] = new CallableMock;
         $container['foundHandler'] = function () {
-            return new InvocationStrategyTest();
+            return new InvocationStrategyMock();
         };
 
         $route = new Route(['GET'], '/', 'CallableTest:toCall'); //Note that this doesn't actually exist
@@ -395,6 +393,6 @@ class RouteTest extends PHPUnit_Framework_TestCase
         $result = $route->callMiddlewareStack($request, new Response);
 
         $this->assertInstanceOf('Slim\Http\Response', $result);
-        $this->assertEquals([$container['CallableTest2'], 'toCall'], InvocationStrategyTest::$LastCalledFor);
+        $this->assertEquals([$container['CallableTest2'], 'toCall'], InvocationStrategyMock::$LastCalledFor);
     }
 }

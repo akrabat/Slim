@@ -111,7 +111,7 @@ class Container extends PimpleContainer implements ContainerInterface
             if ($this->exceptionThrownByContainer($exception)) {
                 throw new SlimContainerException(
                     sprintf('Container error while retrieving "%s"', $id),
-                    null,
+                    0,
                     $exception
                 );
             } else {

@@ -7,12 +7,12 @@
 
 namespace Slim\Tests\Http;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 use Slim\Http\Environment;
 use Slim\Http\Headers;
 
-class HeadersTest extends PHPUnit_Framework_TestCase
+class HeadersTest extends TestCase
 {
     public function testCreateFromEnvironment()
     {
@@ -21,9 +21,8 @@ class HeadersTest extends PHPUnit_Framework_TestCase
         ]);
         $h = Headers::createFromEnvironment($e);
         $prop = new ReflectionProperty($h, 'data');
-        $prop->setAccessible(true);
 
-        $this->assertInternalType('array', $prop->getValue($h)['accept']);
+        $this->assertIsArray($prop->getValue($h)['accept']);
         $this->assertEquals('application/json', $prop->getValue($h)['accept']['value'][0]);
     }
 
@@ -34,9 +33,8 @@ class HeadersTest extends PHPUnit_Framework_TestCase
         ]);
         $h = Headers::createFromEnvironment($e);
         $prop = new ReflectionProperty($h, 'data');
-        $prop->setAccessible(true);
 
-        $this->assertInternalType('array', $prop->getValue($h)['content-type']);
+        $this->assertIsArray($prop->getValue($h)['content-type']);
         $this->assertEquals('application/json', $prop->getValue($h)['content-type']['value'][0]);
     }
 
@@ -48,7 +46,6 @@ class HeadersTest extends PHPUnit_Framework_TestCase
         ]);
         $h = Headers::createFromEnvironment($e);
         $prop = new ReflectionProperty($h, 'data');
-        $prop->setAccessible(true);
 
         $this->assertNotContains('content-length', $prop->getValue($h));
     }
@@ -59,9 +56,8 @@ class HeadersTest extends PHPUnit_Framework_TestCase
             'Content-Length' => 100,
         ]);
         $prop = new ReflectionProperty($h, 'data');
-        $prop->setAccessible(true);
 
-        $this->assertInternalType('array', $prop->getValue($h)['content-length']);
+        $this->assertIsArray($prop->getValue($h)['content-length']);
         $this->assertEquals(100, $prop->getValue($h)['content-length']['value'][0]);
     }
 
@@ -70,9 +66,8 @@ class HeadersTest extends PHPUnit_Framework_TestCase
         $h = new Headers();
         $h->set('Content-Length', 100);
         $prop = new ReflectionProperty($h, 'data');
-        $prop->setAccessible(true);
 
-        $this->assertInternalType('array', $prop->getValue($h)['content-length']);
+        $this->assertIsArray($prop->getValue($h)['content-length']);
         $this->assertEquals(100, $prop->getValue($h)['content-length']['value'][0]);
     }
 
@@ -81,9 +76,8 @@ class HeadersTest extends PHPUnit_Framework_TestCase
         $h = new Headers();
         $h->set('Allow', ['GET', 'POST']);
         $prop = new ReflectionProperty($h, 'data');
-        $prop->setAccessible(true);
 
-        $this->assertInternalType('array', $prop->getValue($h)['allow']);
+        $this->assertIsArray($prop->getValue($h)['allow']);
         $this->assertEquals(['GET', 'POST'], $prop->getValue($h)['allow']['value']);
     }
 
@@ -91,7 +85,6 @@ class HeadersTest extends PHPUnit_Framework_TestCase
     {
         $h = new Headers();
         $prop = new ReflectionProperty($h, 'data');
-        $prop->setAccessible(true);
         $prop->setValue($h, [
             'allow' => [
                 'value' => ['GET', 'POST'],
@@ -127,9 +120,8 @@ class HeadersTest extends PHPUnit_Framework_TestCase
         $h = new Headers();
         $h->add('Foo', 'Bar');
         $prop = new ReflectionProperty($h, 'data');
-        $prop->setAccessible(true);
 
-        $this->assertInternalType('array', $prop->getValue($h)['foo']);
+        $this->assertIsArray($prop->getValue($h)['foo']);
         $this->assertEquals(['Bar'], $prop->getValue($h)['foo']['value']);
     }
 
@@ -139,9 +131,8 @@ class HeadersTest extends PHPUnit_Framework_TestCase
         $h->add('Foo', 'Bar');
         $h->add('Foo', 'Xyz');
         $prop = new ReflectionProperty($h, 'data');
-        $prop->setAccessible(true);
 
-        $this->assertInternalType('array', $prop->getValue($h)['foo']);
+        $this->assertIsArray($prop->getValue($h)['foo']);
         $this->assertEquals(['Bar', 'Xyz'], $prop->getValue($h)['foo']['value']);
     }
 
@@ -151,9 +142,8 @@ class HeadersTest extends PHPUnit_Framework_TestCase
         $h->add('Foo', 'Bar');
         $h->add('Foo', ['Xyz', '123']);
         $prop = new ReflectionProperty($h, 'data');
-        $prop->setAccessible(true);
 
-        $this->assertInternalType('array', $prop->getValue($h)['foo']);
+        $this->assertIsArray($prop->getValue($h)['foo']);
         $this->assertEquals(['Bar', 'Xyz', '123'], $prop->getValue($h)['foo']['value']);
     }
 
@@ -161,7 +151,6 @@ class HeadersTest extends PHPUnit_Framework_TestCase
     {
         $h = new Headers();
         $prop = new ReflectionProperty($h, 'data');
-        $prop->setAccessible(true);
         $prop->setValue($h, [
             'allow' => [
                 'value' => ['GET', 'POST'],
@@ -176,7 +165,6 @@ class HeadersTest extends PHPUnit_Framework_TestCase
     {
         $h = new Headers();
         $prop = new ReflectionProperty($h, 'data');
-        $prop->setAccessible(true);
         $prop->setValue($h, [
             'Allow' => [
                 'value' => ['GET', 'POST'],
@@ -192,7 +180,6 @@ class HeadersTest extends PHPUnit_Framework_TestCase
     {
         $h = new Headers();
         $prop = new ReflectionProperty($h, 'data');
-        $prop->setAccessible(true);
         $prop->setValue($h, [
             'Allow' => [
                 'value' => ['GET', 'POST'],

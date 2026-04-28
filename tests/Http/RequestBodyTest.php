@@ -7,11 +7,11 @@
 
 namespace Slim\Tests\Http;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 use Slim\Http\RequestBody;
 
-class RequestBodyTest extends PHPUnit_Framework_TestCase
+class RequestBodyTest extends TestCase
 {
     /** @var string */
     // @codingStandardsIgnoreStart
@@ -26,14 +26,14 @@ class RequestBodyTest extends PHPUnit_Framework_TestCase
      * Sets up the fixture, for example, open a network connection.
      * This method is called before a test is executed.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->body = new RequestBody();
         $this->body->write($this->text);
         $this->body->rewind();
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         if (is_resource($this->stream) === true) {
             fclose($this->stream);
@@ -62,22 +62,20 @@ class RequestBodyTest extends PHPUnit_Framework_TestCase
     public function testConstructorAttachesStream()
     {
         $bodyStream = new ReflectionProperty($this->body, 'stream');
-        $bodyStream->setAccessible(true);
 
-        $this->assertInternalType('resource', $bodyStream->getValue($this->body));
+        $this->assertIsResource($bodyStream->getValue($this->body));
     }
 
     public function testConstructorSetsMetadata()
     {
         $bodyMetadata = new ReflectionProperty($this->body, 'meta');
-        $bodyMetadata->setAccessible(true);
 
-        $this->assertInternalType('array', $bodyMetadata->getValue($this->body));
+        $this->assertIsArray($bodyMetadata->getValue($this->body));
     }
 
     public function testGetMetadata()
     {
-        $this->assertInternalType('array', $this->body->getMetadata());
+        $this->assertIsArray($this->body->getMetadata());
     }
 
     public function testGetMetadataKey()
@@ -93,23 +91,18 @@ class RequestBodyTest extends PHPUnit_Framework_TestCase
     public function testDetach()
     {
         $bodyStream = new ReflectionProperty($this->body, 'stream');
-        $bodyStream->setAccessible(true);
 
         $bodyMetadata = new ReflectionProperty($this->body, 'meta');
-        $bodyMetadata->setAccessible(true);
 
         $bodyReadable = new ReflectionProperty($this->body, 'readable');
-        $bodyReadable->setAccessible(true);
 
         $bodyWritable = new ReflectionProperty($this->body, 'writable');
-        $bodyWritable->setAccessible(true);
 
         $bodySeekable = new ReflectionProperty($this->body, 'seekable');
-        $bodySeekable->setAccessible(true);
 
         $result = $this->body->detach();
 
-        $this->assertInternalType('resource', $result);
+        $this->assertIsResource($result);
         $this->assertNull($bodyStream->getValue($this->body));
         $this->assertNull($bodyMetadata->getValue($this->body));
         $this->assertNull($bodyReadable->getValue($this->body));
@@ -132,7 +125,6 @@ class RequestBodyTest extends PHPUnit_Framework_TestCase
     public function testToStringDetached()
     {
         $bodyStream = new ReflectionProperty($this->body, 'stream');
-        $bodyStream->setAccessible(true);
         $bodyStream->setValue($this->body, null);
 
         $this->assertEquals('', (string)$this->body);
@@ -142,12 +134,11 @@ class RequestBodyTest extends PHPUnit_Framework_TestCase
     {
         $this->body->close();
 
-        $this->assertAttributeEquals(null, 'stream', $this->body);
         $this->assertFalse($this->body->isReadable());
         $this->assertFalse($this->body->isWritable());
         $this->assertEquals('', (string)$this->body);
 
-        $this->setExpectedException('RuntimeException');
+        $this->expectException('RuntimeException');
         $this->body->tell();
     }
 
@@ -159,7 +150,6 @@ class RequestBodyTest extends PHPUnit_Framework_TestCase
     public function testGetSizeDetached()
     {
         $bodyStream = new ReflectionProperty($this->body, 'stream');
-        $bodyStream->setAccessible(true);
         $bodyStream->setValue($this->body, null);
 
         $this->assertNull($this->body->getSize());
@@ -175,10 +165,9 @@ class RequestBodyTest extends PHPUnit_Framework_TestCase
     public function testTellDetachedThrowsRuntimeException()
     {
         $bodyStream = new ReflectionProperty($this->body, 'stream');
-        $bodyStream->setAccessible(true);
         $bodyStream->setValue($this->body, null);
 
-        $this->setExpectedException('\RuntimeException');
+        $this->expectException('\RuntimeException');
         $this->body->tell();
     }
 
@@ -201,7 +190,6 @@ class RequestBodyTest extends PHPUnit_Framework_TestCase
     public function testEofDetached()
     {
         $bodyStream = new ReflectionProperty($this->body, 'stream');
-        $bodyStream->setAccessible(true);
         $bodyStream->setValue($this->body, null);
 
         $this->assertTrue($this->body->eof());
@@ -256,7 +244,7 @@ class RequestBodyTest extends PHPUnit_Framework_TestCase
     {
         $this->body->detach();
 
-        $this->setExpectedException('\RuntimeException');
+        $this->expectException('\RuntimeException');
         $this->body->seek(10);
     }
 
@@ -272,7 +260,7 @@ class RequestBodyTest extends PHPUnit_Framework_TestCase
     {
         $this->body->detach();
 
-        $this->setExpectedException('\RuntimeException');
+        $this->expectException('\RuntimeException');
         $this->body->rewind();
     }
 
@@ -285,7 +273,7 @@ class RequestBodyTest extends PHPUnit_Framework_TestCase
     {
         $this->body->detach();
 
-        $this->setExpectedException('\RuntimeException');
+        $this->expectException('\RuntimeException');
         $this->body->read(10);
     }
 
@@ -303,7 +291,7 @@ class RequestBodyTest extends PHPUnit_Framework_TestCase
     {
         $this->body->detach();
 
-        $this->setExpectedException('\RuntimeException');
+        $this->expectException('\RuntimeException');
         $this->body->write('foo');
     }
 
@@ -318,7 +306,7 @@ class RequestBodyTest extends PHPUnit_Framework_TestCase
     {
         $this->body->detach();
 
-        $this->setExpectedException('\RuntimeException');
+        $this->expectException('\RuntimeException');
         $this->body->getContents();
     }
 }

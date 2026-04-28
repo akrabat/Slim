@@ -7,7 +7,7 @@
 
 namespace Slim\Tests;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Slim\Http\Body;
 use Slim\Http\Headers;
@@ -16,7 +16,7 @@ use Slim\Http\Response;
 use Slim\Http\Uri;
 use Slim\Tests\Mocks\Stackable;
 
-class MiddlewareAwareTest extends PHPUnit_Framework_TestCase
+class MiddlewareAwareTest extends TestCase
 {
     public function testSeedsMiddlewareStack()
     {
@@ -101,11 +101,9 @@ class MiddlewareAwareTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('In2In1CenterOut1Out2', (string)$res->getBody());
     }
 
-    /**
-     * @expectedException RuntimeException
-     */
     public function testMiddlewareBadReturnValue()
     {
+        $this->expectException(\RuntimeException::class);
         // Build middleware stack
         $stack = new Stackable;
         $stack->add(function ($req, $res, $next) {
@@ -160,7 +158,7 @@ class MiddlewareAwareTest extends PHPUnit_Framework_TestCase
             });
             return $resp;
         });
-        $this->setExpectedException('RuntimeException');
+        $this->expectException('RuntimeException');
         $stack->callMiddlewareStack(
             $this->getMockBuilder('Psr\Http\Message\ServerRequestInterface')->disableOriginalConstructor()->getMock(),
             $this->getMockBuilder('Psr\Http\Message\ResponseInterface')->disableOriginalConstructor()->getMock()
@@ -171,7 +169,7 @@ class MiddlewareAwareTest extends PHPUnit_Framework_TestCase
     {
         $stack = new Stackable;
         $stack->alternativeSeed();
-        $this->setExpectedException('RuntimeException');
+        $this->expectException('RuntimeException');
         $stack->alternativeSeed();
     }
 }

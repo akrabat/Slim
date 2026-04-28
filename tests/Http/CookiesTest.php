@@ -8,13 +8,13 @@
 namespace Slim\Tests\Http;
 
 use InvalidArgumentException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionProperty;
 use Slim\Http\Cookies;
 use stdClass;
 
-class CookiesTest extends PHPUnit_Framework_TestCase
+class CookiesTest extends TestCase
 {
     public function testConstructor()
     {
@@ -22,7 +22,6 @@ class CookiesTest extends PHPUnit_Framework_TestCase
             'test' => 'Works',
         ]);
         $prop = new ReflectionProperty($cookies, 'requestCookies');
-        $prop->setAccessible(true);
         $this->assertNotEmpty($prop->getValue($cookies)['test']);
         $this->assertEquals('Works', $prop->getValue($cookies)['test']);
     }
@@ -43,7 +42,6 @@ class CookiesTest extends PHPUnit_Framework_TestCase
         $cookies = new Cookies;
 
         $prop = new ReflectionProperty($cookies, 'defaults');
-        $prop->setAccessible(true);
 
         $origDefaults = $prop->getValue($cookies);
 
@@ -59,7 +57,6 @@ class CookiesTest extends PHPUnit_Framework_TestCase
         $cookies->set('foo', 'bar');
 
         $prop = new ReflectionProperty($cookies, 'responseCookies');
-        $prop->setAccessible(true);
 
         //we expect all of these values with null/false defaults
         $expectedValue = [
@@ -96,7 +93,6 @@ class CookiesTest extends PHPUnit_Framework_TestCase
         $cookies->set('foo', 'bar');
 
         $prop = new ReflectionProperty($cookies, 'responseCookies');
-        $prop->setAccessible(true);
 
         //we expect to have secure, httponly and samesite from defaults
         $expectedValue = [
@@ -135,7 +131,6 @@ class CookiesTest extends PHPUnit_Framework_TestCase
         $cookies->set('foo', ['value' => 'bar', 'secure' => false, 'samesite' => 'strict']);
 
         $prop = new ReflectionProperty($cookies, 'responseCookies');
-        $prop->setAccessible(true);
 
         $expectedValue = [
             'foo' => [
@@ -170,7 +165,6 @@ class CookiesTest extends PHPUnit_Framework_TestCase
         $cookies->set('breakfast', ['samesite' => 'StricT']);
 
         $prop = new ReflectionProperty($cookies, 'responseCookies');
-        $prop->setAccessible(true);
 
         $expectedValue = [
             'breakfast' => [
@@ -224,7 +218,6 @@ class CookiesTest extends PHPUnit_Framework_TestCase
         $cookies = new Cookies();
         $class = new ReflectionClass($cookies);
         $method = $class->getMethod('toHeader');
-        $method->setAccessible(true);
         $properties = [
             'name' => 'test',
             'properties' => [
@@ -269,7 +262,7 @@ class CookiesTest extends PHPUnit_Framework_TestCase
 
     public function testParseHeaderException()
     {
-        $this->setExpectedException(InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         Cookies::parseHeader(new stdClass);
     }
 }

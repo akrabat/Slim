@@ -7,15 +7,15 @@
 
 namespace Slim\Tests\Handlers;
 
-use PHPUnit_Framework_MockObject_MockObject;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Slim\Handlers\NotAllowed;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
-class NotAllowedTest extends PHPUnit_Framework_TestCase
+class NotAllowedTest extends TestCase
 {
-    public function invalidMethodProvider()
+    public static function invalidMethodProvider()
     {
         return [
             ['application/json', 'application/json', '{'],
@@ -60,18 +60,18 @@ class NotAllowedTest extends PHPUnit_Framework_TestCase
 
     public function testNotFoundContentType()
     {
-        $errorMock = $this->getMockBuilder(NotAllowed::class)->setMethods(['determineContentType'])->getMock();
+        $errorMock = $this->getMockBuilder(NotAllowed::class)->onlyMethods(['determineContentType'])->getMock();
         $errorMock->method('determineContentType')
             ->will($this->returnValue('unknown/type'));
 
-        $this->setExpectedException('\UnexpectedValueException');
+        $this->expectException('\UnexpectedValueException');
         $errorMock->__invoke($this->getRequest('GET', 'unknown/type'), new Response(), ['POST']);
     }
 
     /**
      * @param string $method
      *
-     * @return PHPUnit_Framework_MockObject_MockObject|Request
+     * @return PHPUnit\Framework\MockObject\MockObject|Request
      */
     protected function getRequest($method, $contentType = 'text/html')
     {

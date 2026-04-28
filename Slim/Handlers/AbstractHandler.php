@@ -36,7 +36,7 @@ abstract class AbstractHandler
      */
     protected function determineContentType(ServerRequestInterface $request)
     {
-        $acceptHeader = $request->getHeaderLine('Accept');
+        $acceptHeader = (string)$request->getHeaderLine('Accept');
         $selectedContentTypes = array_intersect(explode(',', $acceptHeader), $this->knownContentTypes);
 
         if (count($selectedContentTypes)) {
