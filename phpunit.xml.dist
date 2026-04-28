@@ -7,6 +7,8 @@
          beStrictAboutChangesToGlobalState="true"
          beStrictAboutOutputDuringTests="true"
          colors="true"
+         failOnWarning="true"
+         failOnNotice="true"
          processIsolation="false"
          stopOnFailure="false"
          bootstrap="tests/bootstrap.php"
