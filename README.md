@@ -16,7 +16,12 @@ It's recommended that you use [Composer](https://getcomposer.org/) to install Sl
 $ composer require slim/slim "^3.0"
 ```
 
-This will install Slim and all required dependencies. Slim requires PHP 5.5.0 or newer.
+This will install Slim and all required dependencies. 
+
+## Version compatibility
+
+- Slim version 3.13.0 requires PHP 8.1 or newer.   
+- Slim version 3.12.x and below requires PHP 5.5 – PHP 8.1.
 
 ## Usage
 
