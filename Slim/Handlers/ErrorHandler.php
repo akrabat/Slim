@@ -78,6 +78,8 @@ class ErrorHandler implements ErrorHandlerInterface
 
     protected ?string $contentType = null;
 
+    protected bool $isContentTypeForced = false;
+
     protected ?string $method = null;
 
     protected ServerRequestInterface $request;
@@ -125,7 +127,7 @@ class ErrorHandler implements ErrorHandlerInterface
         $this->exception = $exception;
         $this->method = $request->getMethod();
         $this->statusCode = $this->determineStatusCode();
-        if ($this->contentType === null) {
+        if (!$this->isContentTypeForced) {
             $this->contentType = $this->determineContentType($request);
         }
 
@@ -143,6 +145,7 @@ class ErrorHandler implements ErrorHandlerInterface
      */
     public function forceContentType(?string $contentType): void
     {
+        $this->isContentTypeForced = true;
         $this->contentType = $contentType;
     }
 
