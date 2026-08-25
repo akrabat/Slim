@@ -176,6 +176,43 @@ class ErrorHandlerTest extends TestCase
         $this->assertSame(['application/json'], $response->getHeader('Content-Type'));
     }
 
+    /**
+     * Test that forceContentType(null) restores Accept-header negotiation.
+     */
+    public function testForceContentTypeNullRestoresNegotiation()
+    {
+        $handler = new ErrorHandler($this->getCallableResolver(), $this->getResponseFactory());
+        $handler->forceContentType('application/json');
+
+        $xmlRequest = $this
+            ->createServerRequest('/not-defined', 'GET')
+            ->withHeader('Accept', 'application/xml');
+
+        $htmlRequest = $this
+            ->createServerRequest('/not-defined', 'GET')
+            ->withHeader('Accept', 'text/html');
+
+        $exception = new HttpNotFoundException($xmlRequest);
+
+        /** @var ResponseInterface $response */
+        $response = $handler->__invoke($xmlRequest, $exception, false, false, false);
+        $this->assertSame(['application/json'], $response->getHeader('Content-Type'));
+
+        $handler->forceContentType(null);
+
+        $exception = new HttpNotFoundException($xmlRequest);
+
+        /** @var ResponseInterface $response */
+        $response = $handler->__invoke($xmlRequest, $exception, false, false, false);
+        $this->assertSame(['application/xml'], $response->getHeader('Content-Type'));
+
+        $exception = new HttpNotFoundException($htmlRequest);
+
+        /** @var ResponseInterface $response */
+        $response = $handler->__invoke($htmlRequest, $exception, false, false, false);
+        $this->assertSame(['text/html'], $response->getHeader('Content-Type'));
+    }
+
     public function testHalfValidContentType()
     {
         $request = $this
