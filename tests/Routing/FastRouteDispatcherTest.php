@@ -115,18 +115,36 @@ class FastRouteDispatcherTest extends TestCase
         }, $this->generateDispatcherOptions());
 
         $reflectionClass = new \ReflectionClass($dispatcher);
-        $maxCacheSize = $reflectionClass->getConstant('MAX_ALLOWED_METHODS_CACHE_SIZE');
+        $uriProperty = $reflectionClass->getProperty('allowedMethodsUri');
+        $uriProperty->setAccessible(true);
         $cacheProperty = $reflectionClass->getProperty('allowedMethods');
         $cacheProperty->setAccessible(true);
 
         // Simulate a long-lived dispatcher instance (e.g. a persistent-worker
-        // runtime) being hit with far more distinct, attacker-controlled URIs
-        // than the cache is allowed to hold.
-        for ($i = 0; $i < $maxCacheSize + 500; $i++) {
+        // runtime) being hit with many distinct, attacker-controlled URIs.
+        // The memo must stay a single entry regardless of how many distinct
+        // URIs are requested.
+        for ($i = 0; $i < 1500; $i++) {
             $dispatcher->getAllowedMethods('/not-found-' . $i);
         }
 
-        $this->assertLessThanOrEqual($maxCacheSize, count($cacheProperty->getValue($dispatcher)));
+        $this->assertSame('/not-found-1499', $uriProperty->getValue($dispatcher));
+        $this->assertIsArray($cacheProperty->getValue($dispatcher));
+    }
+
+    public function testGetAllowedMethodsMemoizesLastUriOnly()
+    {
+        /** @var FastRouteDispatcher $dispatcher */
+        $dispatcher = simpleDispatcher(function (RouteCollector $r) {
+            $r->addRoute('GET', '/user', 'handler0');
+            $r->addRoute('POST', '/post', 'handler1');
+        }, $this->generateDispatcherOptions());
+
+        $this->assertSame(['GET'], $dispatcher->getAllowedMethods('/user'));
+        $this->assertSame(['POST'], $dispatcher->getAllowedMethods('/post'));
+        // Re-requesting the first URI recomputes rather than returning a
+        // stale hit from the second lookup.
+        $this->assertSame(['GET'], $dispatcher->getAllowedMethods('/user'));
     }
 
     public function testDuplicateVariableNameError()

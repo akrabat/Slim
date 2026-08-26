@@ -15,18 +15,23 @@ use FastRoute\Dispatcher\GroupCountBased;
 class FastRouteDispatcher extends GroupCountBased
 {
     /**
-     * Maximum number of URIs to memoize in $allowedMethods.
+     * The URI that $allowedMethods was computed for.
      *
-     * Dispatcher instances can outlive a single request (e.g. persistent-worker
-     * runtimes such as FrankenPHP worker mode, RoadRunner, Swoole, or long-running
-     * CLI/queue processes that reuse one App/Dispatcher). Without a cap, requesting
-     * distinct URIs indefinitely grows this cache with no eviction, allowing
-     * unbounded memory consumption from client-controlled input.
+     * getAllowedMethods() only ever needs to remember its most recent result:
+     * within a single dispatch() call it's invoked once for the current URI,
+     * and across calls it only saves recomputation when the same URI repeats
+     * back-to-back. Memoizing every distinct URI ever seen (unbounded) let a
+     * long-lived Dispatcher instance (e.g. a persistent-worker runtime, or any
+     * process that reuses one App/Dispatcher across many requests) be driven
+     * to unbounded memory growth by client-controlled URIs. A single-entry
+     * memo is bounded by construction.
+     *
+     * @var string|null
      */
-    private const MAX_ALLOWED_METHODS_CACHE_SIZE = 1000;
+    private ?string $allowedMethodsUri = null;
 
     /**
-     * @var string[][]
+     * @var string[]
      */
     private array $allowedMethods = [];
 
@@ -97,8 +102,8 @@ class FastRouteDispatcher extends GroupCountBased
      */
     public function getAllowedMethods(string $uri): array
     {
-        if (isset($this->allowedMethods[$uri])) {
-            return $this->allowedMethods[$uri];
+        if ($this->allowedMethodsUri === $uri) {
+            return $this->allowedMethods;
         }
 
         $allowedMethods = [];
@@ -115,11 +120,8 @@ class FastRouteDispatcher extends GroupCountBased
             }
         }
 
-        if (count($this->allowedMethods) >= self::MAX_ALLOWED_METHODS_CACHE_SIZE) {
-            // Evict the oldest entry to keep the cache bounded.
-            unset($this->allowedMethods[array_key_first($this->allowedMethods)]);
-        }
+        $this->allowedMethodsUri = $uri;
 
-        return $this->allowedMethods[$uri] = array_keys($allowedMethods);
+        return $this->allowedMethods = array_keys($allowedMethods);
     }
 }
