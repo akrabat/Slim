@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Fixed
+ - Substitute invalid UTF-8 in JSON error renderer output (#811)
 
 ### Added
 
