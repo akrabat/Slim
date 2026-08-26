@@ -107,6 +107,28 @@ class FastRouteDispatcherTest extends TestCase
         $this->assertSame($results, $allowedMethods);
     }
 
+    public function testGetAllowedMethodsCacheIsBounded()
+    {
+        /** @var FastRouteDispatcher $dispatcher */
+        $dispatcher = simpleDispatcher(function (RouteCollector $r) {
+            $r->addRoute('GET', '/user', 'handler0');
+        }, $this->generateDispatcherOptions());
+
+        $reflectionClass = new \ReflectionClass($dispatcher);
+        $maxCacheSize = $reflectionClass->getConstant('MAX_ALLOWED_METHODS_CACHE_SIZE');
+        $cacheProperty = $reflectionClass->getProperty('allowedMethods');
+        $cacheProperty->setAccessible(true);
+
+        // Simulate a long-lived dispatcher instance (e.g. a persistent-worker
+        // runtime) being hit with far more distinct, attacker-controlled URIs
+        // than the cache is allowed to hold.
+        for ($i = 0; $i < $maxCacheSize + 500; $i++) {
+            $dispatcher->getAllowedMethods('/not-found-' . $i);
+        }
+
+        $this->assertLessThanOrEqual($maxCacheSize, count($cacheProperty->getValue($dispatcher)));
+    }
+
     public function testDuplicateVariableNameError()
     {
         $this->expectException(BadRouteException::class);

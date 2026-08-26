@@ -15,6 +15,17 @@ use FastRoute\Dispatcher\GroupCountBased;
 class FastRouteDispatcher extends GroupCountBased
 {
     /**
+     * Maximum number of URIs to memoize in $allowedMethods.
+     *
+     * Dispatcher instances can outlive a single request (e.g. persistent-worker
+     * runtimes such as FrankenPHP worker mode, RoadRunner, Swoole, or long-running
+     * CLI/queue processes that reuse one App/Dispatcher). Without a cap, requesting
+     * distinct URIs indefinitely grows this cache with no eviction, allowing
+     * unbounded memory consumption from client-controlled input.
+     */
+    private const MAX_ALLOWED_METHODS_CACHE_SIZE = 1000;
+
+    /**
      * @var string[][]
      */
     private array $allowedMethods = [];
@@ -102,6 +113,11 @@ class FastRouteDispatcher extends GroupCountBased
             if ($result[0] === self::FOUND) {
                 $allowedMethods[$method] = true;
             }
+        }
+
+        if (count($this->allowedMethods) >= self::MAX_ALLOWED_METHODS_CACHE_SIZE) {
+            // Evict the oldest entry to keep the cache bounded.
+            unset($this->allowedMethods[array_key_first($this->allowedMethods)]);
         }
 
         return $this->allowedMethods[$uri] = array_keys($allowedMethods);
