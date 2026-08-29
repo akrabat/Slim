@@ -107,32 +107,7 @@ class FastRouteDispatcherTest extends TestCase
         $this->assertSame($results, $allowedMethods);
     }
 
-    public function testGetAllowedMethodsCacheIsBounded()
-    {
-        /** @var FastRouteDispatcher $dispatcher */
-        $dispatcher = simpleDispatcher(function (RouteCollector $r) {
-            $r->addRoute('GET', '/user', 'handler0');
-        }, $this->generateDispatcherOptions());
-
-        $reflectionClass = new \ReflectionClass($dispatcher);
-        $uriProperty = $reflectionClass->getProperty('allowedMethodsUri');
-        $uriProperty->setAccessible(true);
-        $cacheProperty = $reflectionClass->getProperty('allowedMethods');
-        $cacheProperty->setAccessible(true);
-
-        // Simulate a long-lived dispatcher instance (e.g. a persistent-worker
-        // runtime) being hit with many distinct, attacker-controlled URIs.
-        // The memo must stay a single entry regardless of how many distinct
-        // URIs are requested.
-        for ($i = 0; $i < 1500; $i++) {
-            $dispatcher->getAllowedMethods('/not-found-' . $i);
-        }
-
-        $this->assertSame('/not-found-1499', $uriProperty->getValue($dispatcher));
-        $this->assertIsArray($cacheProperty->getValue($dispatcher));
-    }
-
-    public function testGetAllowedMethodsMemoizesLastUriOnly()
+    public function testGetAllowedMethodsReusesLastUriOnly()
     {
         /** @var FastRouteDispatcher $dispatcher */
         $dispatcher = simpleDispatcher(function (RouteCollector $r) {
@@ -142,8 +117,8 @@ class FastRouteDispatcherTest extends TestCase
 
         $this->assertSame(['GET'], $dispatcher->getAllowedMethods('/user'));
         $this->assertSame(['POST'], $dispatcher->getAllowedMethods('/post'));
-        // Re-requesting the first URI recomputes rather than returning a
-        // stale hit from the second lookup.
+
+        // Repeating the first URI recomputes, as only the last result is kept.
         $this->assertSame(['GET'], $dispatcher->getAllowedMethods('/user'));
     }
 

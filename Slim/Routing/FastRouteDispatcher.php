@@ -15,17 +15,6 @@ use FastRoute\Dispatcher\GroupCountBased;
 class FastRouteDispatcher extends GroupCountBased
 {
     /**
-     * The URI that $allowedMethods was computed for.
-     *
-     * getAllowedMethods() only ever needs to remember its most recent result:
-     * within a single dispatch() call it's invoked once for the current URI,
-     * and across calls it only saves recomputation when the same URI repeats
-     * back-to-back. Memoizing every distinct URI ever seen (unbounded) let a
-     * long-lived Dispatcher instance (e.g. a persistent-worker runtime, or any
-     * process that reuses one App/Dispatcher across many requests) be driven
-     * to unbounded memory growth by client-controlled URIs. A single-entry
-     * memo is bounded by construction.
-     *
      * @var string|null
      */
     private ?string $allowedMethodsUri = null;
