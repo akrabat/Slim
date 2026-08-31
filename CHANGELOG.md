@@ -3,7 +3,9 @@
 ## [Unreleased]
 
 ### Fixed
- - Substitute invalid UTF-8 in JSON error renderer output (#811)
+ - Negotiate error handler content type on every request (#3464)
+ - Substitute invalid UTF-8 in JSON error renderer output (#3465)
+ - Cache only the last getAllowedMethods() lookup (#3468)
 
 ### Added
 
